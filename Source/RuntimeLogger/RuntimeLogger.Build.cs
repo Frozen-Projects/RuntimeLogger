@@ -25,6 +25,7 @@ public class RuntimeLogger : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+				"UMG",
                 "Json",
                 "JsonUtilities",
                 "JsonBlueprintUtilities",
