@@ -14,3 +14,6 @@ You can look at plugin's content folder. You will see sample blueprints.
 
 ## Platform Support
 I didn't use any platform specific code. So, it should work with any platform. But I have only Windows and Android devices. So, I can't give support about other platforms especially for their editor side.
+
+## Engine Support
+I don't support ``UE4`` and older versions than ``latest version``. I will update version ``after one month`` of new major release.
