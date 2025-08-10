@@ -19,7 +19,9 @@ private:
 	UWorld* World = nullptr;
 
 	virtual void SetSubsystem();
-	virtual void OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeLogLevels Out_Levels);
+
+	UFUNCTION()
+	virtual void OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeLogLevels Out_Level);
 
 public:
 
@@ -39,5 +41,8 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UScrollBox* Container_Logs = nullptr;
+
+	UPROPERTY(BlueprintReadWrite)
+	TSubclassOf<URL_Widget_Entries> EntryClass = nullptr;
 
 };

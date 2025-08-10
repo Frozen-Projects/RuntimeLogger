@@ -23,20 +23,7 @@ void URL_Widget_Main::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 
 TSharedRef<SWidget> URL_Widget_Main::RebuildWidget()
 {
-	TSharedRef<SWidget> Widget = Super::RebuildWidget();
-
-	UPanelWidget* RootWidget = Cast<UPanelWidget>(GetRootWidget());
-
-	if (RootWidget && WidgetTree)
-	{
-		this->CanvasPanel = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), FName(TEXT("")));
-		RootWidget->AddChild(this->CanvasPanel);
-
-		this->Container_Logs = WidgetTree->ConstructWidget<UScrollBox>(UScrollBox::StaticClass(), FName(TEXT("Container_Logs")));
-		this->CanvasPanel->AddChild(this->Container_Logs);
-	}
-
-	return Widget;
+	return Super::RebuildWidget();
 }
 
 void URL_Widget_Main::SetSubsystem()
@@ -60,8 +47,13 @@ void URL_Widget_Main::SetSubsystem()
 	this->LoggerSubsystem->Delegate_Runtime_Logger.AddDynamic(this, &URL_Widget_Main::OnLogReceived);
 }
 
-void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeLogLevels Out_Levels)
+void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeLogLevels Out_Level)
 {
+	if (!EntryClass)
+	{
+		return;
+	}
+
 	if(!IsValid(this->World))
 	{ 
 		return;
@@ -73,20 +65,31 @@ void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeL
 	{
 		return;
 	}
-
-	TSubclassOf<UUserWidget> WidgetClass = URL_Widget_Entries::StaticClass();
-
-	if (!IsValid(WidgetClass))
-	{
-		return;
-	}
 	
-	UUserWidget* LogEntry = CreateWidget<UUserWidget>(PlayerController, WidgetClass);
+	URL_Widget_Entries* LogEntry = CreateWidget<URL_Widget_Entries>(PlayerController, EntryClass);
 	
 	if (!IsValid(LogEntry))
 	{
 		return;
 	}
 
-	this->Container_Logs->AddChild(LogEntry);
+	UPanelSlot* AddedSlot = this->Container_Logs->AddChild(LogEntry);
+	
+	if (!IsValid(AddedSlot))
+	{
+		return;
+	}
+
+	UScrollBoxSlot* ScrollBoxSlot = Cast<UScrollBoxSlot>(AddedSlot);
+
+	if (!IsValid(ScrollBoxSlot))
+	{
+		return;
+	}
+
+	ScrollBoxSlot->SetPadding(FMargin(10.0f));
+	ScrollBoxSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
+	ScrollBoxSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
+
+	LogEntry->SetLogParams(Out_UUID, Out_Log, Out_Level);
 }

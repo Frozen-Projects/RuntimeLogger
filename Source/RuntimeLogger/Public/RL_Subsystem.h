@@ -13,7 +13,7 @@
 // Forward Declarations.
 class FRuntimeLogger_Thread;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FDelegateRuntimeLogger, FString, Out_UUID, FString, Out_Log, ERuntimeLogLevels, Out_Levels);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FDelegateRuntimeLogger, FString, Out_UUID, FString, Out_Log, ERuntimeLogLevels, Out_Level);
 
 UCLASS()
 class RUNTIMELOGGER_API URuntimeLoggerSubsystem : public UGameInstanceSubsystem

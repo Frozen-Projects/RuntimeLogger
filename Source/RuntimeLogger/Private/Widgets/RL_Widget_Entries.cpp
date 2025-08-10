@@ -8,6 +8,7 @@ void URL_Widget_Entries::NativePreConstruct()
 void URL_Widget_Entries::NativeConstruct()
 {
 	Super::NativeConstruct();
+	this->Button_UUID->OnClicked.AddDynamic(this, &URL_Widget_Entries::CopyToClipBoard);
 }
 
 void URL_Widget_Entries::NativeDestruct()
@@ -22,18 +23,15 @@ void URL_Widget_Entries::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 
 TSharedRef<SWidget> URL_Widget_Entries::RebuildWidget()
 {
-	TSharedRef<SWidget> Widget = Super::RebuildWidget();
+	return Super::RebuildWidget();
+}
 
-	UPanelWidget* RootWidget = Cast<UPanelWidget>(GetRootWidget());
+void URL_Widget_Entries::SetLogParams(FString UUID, FString OtherParams, ERuntimeLogLevels RL_Level)
+{
+	this->Title_UUID->SetText(FText::FromString(UUID));
+}
 
-	if (RootWidget && WidgetTree)
-	{
-		this->CanvasPanel = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), FName(TEXT("")));
-		RootWidget->AddChild(this->CanvasPanel);
-
-		this->Container_Logs = WidgetTree->ConstructWidget<UScrollBox>(UScrollBox::StaticClass(), FName(TEXT("Container_Logs")));
-		RootWidget->AddChild(this->CanvasPanel);
-	}
-
-	return Widget;
+void URL_Widget_Entries::CopyToClipBoard()
+{
+	FPlatformApplicationMisc::ClipboardCopy(*this->Title_UUID->GetText().ToString());
 }
