@@ -45,3 +45,16 @@ void FRuntimeLogger_Thread::Stop()
 {
 	this->bStartThread = false;
 }
+
+void FRuntimeLogger_Thread::Toggle(bool bIsPaused)
+{
+	if (!this->bStartThread)
+	{
+		return;
+	}
+
+	if (this->RunnableThread)
+	{
+		RunnableThread->Suspend(bIsPaused);
+	}
+}

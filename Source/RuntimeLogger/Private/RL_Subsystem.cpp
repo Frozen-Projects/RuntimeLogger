@@ -158,6 +158,16 @@ TMap<FString, FString> URuntimeLoggerSubsystem::GetLogDb()
 	return this->LogDb;
 }
 
+void URuntimeLoggerSubsystem::ResetLogs()
+{
+	this->LoggerThread->Toggle(true);
+	
+	FScopeLock Lock(&this->LogGuard);
+	this->LogDb.Empty();
+
+	this->LoggerThread->Toggle(false);
+}
+
 FString URuntimeLoggerSubsystem::GetLogFilePath() const
 {
 	FString TempPath = this->LogFilePath;

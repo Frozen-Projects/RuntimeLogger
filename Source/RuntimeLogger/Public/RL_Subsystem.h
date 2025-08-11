@@ -22,6 +22,7 @@ class RUNTIMELOGGER_API URuntimeLoggerSubsystem : public UGameInstanceSubsystem
 	
 private:
 
+	mutable FCriticalSection LogGuard;
 	FRuntimeLogger_Thread* LoggerThread = nullptr;
 	
 	TQueue<FString> LogQueue;
@@ -53,6 +54,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Runtime Logger")
 	virtual TMap<FString, FString> GetLogDb();
+
+	UFUNCTION(BlueprintCallable, Category = "Runtime Logger")
+	virtual void ResetLogs();
 
 	UFUNCTION(BlueprintPure, Category = "Runtime Logger")
 	virtual FString GetLogFilePath() const;
