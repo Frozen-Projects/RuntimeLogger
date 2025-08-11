@@ -177,3 +177,28 @@ FString URuntimeLoggerSubsystem::GetLog(const FString& UUID) const
 		return FString();
 	}
 }
+
+TMap<FString, FString> URuntimeLoggerSubsystem::JsonToMap(FString JsonString)
+{
+	FJsonObjectWrapper RawJson;
+
+	if (!RawJson.JsonObjectFromString(JsonString))
+	{
+		TMap<FString, FString> LogData;
+		LogData.Add("PluginName", "Runtime Logger");
+		LogData.Add("FunctionName", FString(ANSI_TO_TCHAR(__FUNCSIG__)));
+		LogData.Add("Details", "There was a problem to convert json to a TMap !");
+
+		this->LogMessage(LogData, ERuntimeLogLevels::Critical);
+	}
+
+	TMap<FString, FString> Map_Data;
+	for (TPair<FString, TSharedPtr<FJsonValue>> EachParam : RawJson.JsonObject->Values)
+	{
+		const FString Key = EachParam.Key;
+		const FString Value = EachParam.Value.IsValid() ? EachParam.Value->AsString() : FString();
+		Map_Data.Add(Key, Value);
+	}
+
+	return Map_Data;
+}

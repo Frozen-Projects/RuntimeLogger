@@ -1,0 +1,100 @@
+#include "Widgets/RL_Each_Log.h"
+
+void URL_Each_Log::NativePreConstruct()
+{
+	Super::NativePreConstruct();
+}
+
+void URL_Each_Log::NativeConstruct()
+{
+	Super::NativeConstruct();
+	this->Button_UUID->OnClicked.AddDynamic(this, &URL_Each_Log::CopyToClipBoard);
+
+	if (IsValid(this->World))
+	{
+		return;
+	}
+
+	UWorld* TempWorld = GEngine->GetCurrentPlayWorld();
+	
+	if (!IsValid(TempWorld))
+	{
+		return;
+	}
+
+	this->World = TempWorld;
+}
+
+void URL_Each_Log::NativeDestruct()
+{
+	Super::NativeDestruct();
+}
+
+void URL_Each_Log::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+}
+
+TSharedRef<SWidget> URL_Each_Log::RebuildWidget()
+{
+	return Super::RebuildWidget();
+}
+
+void URL_Each_Log::CopyToClipBoard()
+{
+	FPlatformApplicationMisc::ClipboardCopy(*this->Title_UUID->GetText().ToString());
+}
+
+void URL_Each_Log::SetLogParams(FString UUID, TMap<FString, FString> OtherParams, ERuntimeLogLevels RL_Level, TSubclassOf<URL_Each_Log_Param> ParamClass)
+{
+	if (!ParamClass)
+	{
+		return;
+	}
+
+	FSlateColor TitleColor;
+
+	switch (RL_Level)
+	{
+		case ERuntimeLogLevels::Info:
+
+			TitleColor = FSlateColor(FLinearColor::White);
+			break;
+
+		case ERuntimeLogLevels::Warning:
+
+			TitleColor = FSlateColor(FLinearColor::Yellow);
+			break;
+
+		case ERuntimeLogLevels::Critical:
+
+			TitleColor = FSlateColor(FLinearColor::Red);
+			break;
+
+		default:
+
+			TitleColor = FSlateColor(FLinearColor::White);
+			break;
+	}
+
+	this->Title_UUID->SetColorAndOpacity(TitleColor);
+	this->Title_UUID->SetText(FText::FromString(UUID));
+
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this->World, 0);
+
+	if (!IsValid(PlayerController))
+	{
+		return;
+	}
+
+	for (const TPair<FString, FString> EachParam : OtherParams)
+	{
+		URL_Each_Log_Param* NewParam = CreateWidget<URL_Each_Log_Param>(PlayerController, ParamClass);
+
+		if (IsValid(NewParam))
+		{
+			this->ParamsBody->AddChild(NewParam);
+			NewParam->SetLogParams(EachParam.Key, EachParam.Value, RL_Level);
+		}
+	}
+}

@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 
-#include "Widgets/RL_Widget_Entries.h"
+#include "Widgets/RL_Each_Log.h"
 
 #include "RL_Widget_Main.generated.h"
 
@@ -42,7 +42,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UScrollBox* Container_Logs = nullptr;
 
+	/*
+	* It has to be a derived blueprint class !
+	*/
 	UPROPERTY(BlueprintReadWrite)
-	TSubclassOf<URL_Widget_Entries> EntryClass = nullptr;
+	TSubclassOf<URL_Each_Log> Each_Log_Class = nullptr;
+
+	/*
+	* It has to be a derived blueprint class !
+	*/
+	UPROPERTY(BlueprintReadWrite)
+	TSubclassOf<URL_Each_Log_Param> Log_Param_Class = nullptr;
 
 };

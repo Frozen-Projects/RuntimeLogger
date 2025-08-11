@@ -49,13 +49,27 @@ void URL_Widget_Main::SetSubsystem()
 
 void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeLogLevels Out_Level)
 {
-	if (!EntryClass)
+	if (!IsValid(this->LoggerSubsystem))
 	{
+		UE_LOG(LogTemp, Fatal, TEXT("Runtime Logger Subsystem is not valid!"));
+		return;
+	}
+
+	if (!Each_Log_Class)
+	{
+		UE_LOG(LogTemp, Fatal, TEXT("Each Log Class is not set!"));
+		return;
+	}
+
+	if (!Log_Param_Class)
+	{
+		UE_LOG(LogTemp, Fatal, TEXT("Log Param Class is not set!"));
 		return;
 	}
 
 	if(!IsValid(this->World))
 	{ 
+		UE_LOG(LogTemp, Fatal, TEXT("World is not valid!"));
 		return;
 	}
 
@@ -63,20 +77,23 @@ void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeL
 
 	if (!IsValid(PlayerController))
 	{
+		UE_LOG(LogTemp, Fatal, TEXT("Player Controller is not valid!"));
 		return;
 	}
 	
-	URL_Widget_Entries* LogEntry = CreateWidget<URL_Widget_Entries>(PlayerController, EntryClass);
+	URL_Each_Log* Each_Log = CreateWidget<URL_Each_Log>(PlayerController, Each_Log_Class);
 	
-	if (!IsValid(LogEntry))
+	if (!IsValid(Each_Log))
 	{
+		UE_LOG(LogTemp, Fatal, TEXT("Each Log Widget is not valid!"));
 		return;
 	}
 
-	UPanelSlot* AddedSlot = this->Container_Logs->AddChild(LogEntry);
+	UPanelSlot* AddedSlot = this->Container_Logs->AddChild(Each_Log);
 	
 	if (!IsValid(AddedSlot))
 	{
+		UE_LOG(LogTemp, Fatal, TEXT("Failed to add Each Log Widget to Container!"));
 		return;
 	}
 
@@ -84,6 +101,7 @@ void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeL
 
 	if (!IsValid(ScrollBoxSlot))
 	{
+		UE_LOG(LogTemp, Fatal, TEXT("Added Slot is not a ScrollBoxSlot!"));
 		return;
 	}
 
@@ -91,5 +109,6 @@ void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeL
 	ScrollBoxSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
 	ScrollBoxSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
 
-	LogEntry->SetLogParams(Out_UUID, Out_Log, Out_Level);
+	TMap<FString, FString> Map_LogData = this->LoggerSubsystem->JsonToMap(Out_Log);
+	Each_Log->SetLogParams(Out_UUID, Map_LogData, Out_Level, Log_Param_Class);
 }

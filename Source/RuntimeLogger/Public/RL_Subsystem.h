@@ -63,6 +63,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "FF_RealSense")
 	FDelegateRuntimeLogger Delegate_Runtime_Logger;
 
+	UFUNCTION(BlueprintCallable, Category = "Runtime Logger")
+	virtual TMap<FString, FString> JsonToMap(FString JsonString);
+
 	/*
 	* This function is just a placeholder to demonstrate the use of __FUNCSIG__ Don't use it in production code.
 	* __FUNCSIG__ doesn't work on blueprints. So, you have to fill the function name manually.
@@ -70,7 +73,7 @@ public:
 	virtual void SampleFunction()
 	{
 		TMap<FString, FString> LogData;
-		LogData.Add("PluginName", "ExtendedVars");
+		LogData.Add("PluginName", "Runtime Logger");
 		LogData.Add("FunctionName", FString(ANSI_TO_TCHAR(__FUNCSIG__)));
 		LogData.Add("Details", "This is a sample function for logging purposes.");
 

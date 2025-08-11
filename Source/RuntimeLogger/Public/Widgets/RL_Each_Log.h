@@ -3,17 +3,18 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 
-#include "Widgets/RL_Widget_Includes.h"
-#include "RL_Subsystem.h"
+#include "Widgets/RL_Each_Log_Param.h"
 
-#include "RL_Widget_Entries.generated.h"
+#include "RL_Each_Log.generated.h"
 
 UCLASS()
-class RUNTIMELOGGER_API URL_Widget_Entries : public UUserWidget
+class RUNTIMELOGGER_API URL_Each_Log : public UUserWidget
 {
 	GENERATED_BODY()
 
 private:
+
+	UWorld* World = nullptr;
 
 	UFUNCTION()
 	virtual void CopyToClipBoard();
@@ -26,8 +27,7 @@ public:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual TSharedRef<SWidget> RebuildWidget() override;
 
-	UFUNCTION(BlueprintCallable, Category = "Runtime Logger")
-	virtual void SetLogParams(FString UUID, FString OtherParams, ERuntimeLogLevels RL_Level);
+	virtual void SetLogParams(FString UUID, TMap<FString, FString> OtherParams, ERuntimeLogLevels RL_Level, TSubclassOf<URL_Each_Log_Param> ParamClass);
 
 	/*
 	* BindWidget & BindWidgetOptional
