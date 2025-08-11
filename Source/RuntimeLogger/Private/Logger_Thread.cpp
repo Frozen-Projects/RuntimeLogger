@@ -61,12 +61,12 @@ uint32 FRuntimeLogger_Thread::Run()
 		if (this->bIsPaused && this->WakeEvent)
 		{
 			this->WakeEvent->Wait();
+			continue;
 		}
 
 		if (IsValid(this->LoggerSubsystem))
 		{
 			this->LoggerSubsystem->RecordMessages();
-			UE_LOG(LogTemp, Log, TEXT("Runtime Logger Thread is running."));
 
 			if (this->LoggerSubsystem->IsQueueEmpty())
 			{
