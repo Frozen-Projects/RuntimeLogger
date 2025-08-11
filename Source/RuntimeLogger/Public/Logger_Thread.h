@@ -27,13 +27,17 @@ public:
 	// Game Thread.
 	virtual void Stop() override;
 
-	virtual void Toggle(bool bIsPaused);
+	virtual void TriggerWakeEvent();
+	virtual void WaitForWakeEvent();
 
 private:
 
-	bool bStartThread = false;
 	FRunnableThread* RunnableThread = nullptr;
 	const FString ThreadName = "RuntimeLogger_Thread";
+
 	URuntimeLoggerSubsystem* LoggerSubsystem = nullptr;
 
+	FThreadSafeBool bIsRunning = false;
+	FThreadSafeBool bIsPaused = false;
+	FEvent* WakeEvent = nullptr;
 };

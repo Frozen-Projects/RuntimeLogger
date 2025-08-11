@@ -35,7 +35,7 @@ private:
 	virtual void OpenLogFile();
 	virtual void CleanupLogs();
 	virtual void StartLogging();
-	virtual ERuntimeLogLevels GetLogLevelFromString(FString LogLevelString);
+	static ERuntimeLogLevels GetLogLevelFromString(FString LogLevelString);
 
 public:
 
@@ -43,6 +43,7 @@ public:
 	virtual void Deinitialize() override;
 
 	virtual void RecordMessages();
+	virtual bool IsQueueEmpty();
 
 	/**
 	 * Logs a message with a unique identifier.

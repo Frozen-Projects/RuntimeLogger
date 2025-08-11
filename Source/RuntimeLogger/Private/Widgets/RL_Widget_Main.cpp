@@ -32,6 +32,7 @@ void URL_Widget_Main::SetSubsystem()
 
 	if (!IsValid(TempWorld))
 	{
+		UE_LOG(LogTemp, Fatal, TEXT("Current Play World is not valid !"));
 		return;
 	}
 
@@ -40,6 +41,7 @@ void URL_Widget_Main::SetSubsystem()
 
 	if (!IsValid(TempSubsystem))
 	{
+		UE_LOG(LogTemp, Fatal, TEXT("Runtime Logger Subsystem is not valid ! Make sure it is initialized in the GameInstance !"));
 		return;
 	}
 
@@ -49,27 +51,27 @@ void URL_Widget_Main::SetSubsystem()
 
 void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeLogLevels Out_Level)
 {
+	if (!IsValid(this->World))
+	{
+		UE_LOG(LogTemp, Fatal, TEXT("World is not valid !"));
+		return;
+	}
+
 	if (!IsValid(this->LoggerSubsystem))
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("Runtime Logger Subsystem is not valid!"));
+		UE_LOG(LogTemp, Fatal, TEXT("Runtime Logger Subsystem is not valid !"));
 		return;
 	}
 
 	if (!Each_Log_Class)
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("Each Log Class is not set!"));
+		UE_LOG(LogTemp, Fatal, TEXT("Each Log Class is not set !"));
 		return;
 	}
 
 	if (!Log_Param_Class)
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("Log Param Class is not set!"));
-		return;
-	}
-
-	if(!IsValid(this->World))
-	{ 
-		UE_LOG(LogTemp, Fatal, TEXT("World is not valid!"));
+		UE_LOG(LogTemp, Fatal, TEXT("Log Param Class is not set !"));
 		return;
 	}
 
