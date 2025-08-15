@@ -14,22 +14,29 @@ class RUNTIMELOGGER_API URL_Widget_Main : public UUserWidget
 
 private:
 
-	URuntimeLoggerSubsystem* LoggerSubsystem = nullptr;
-
 	UWorld* World = nullptr;
+	URuntimeLoggerSubsystem* LoggerSubsystem = nullptr;
+	
+	TMap<FString, URL_Each_Log*> MAP_Widgets;
+	TSet<FString> Current_Criticalities;
 
 	virtual void SetSubsystem();
 
 	UFUNCTION()
 	virtual void OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeLogLevels Out_Level);
+	virtual void GenerateChildWidgets(FString Out_UUID, FString Out_Log, ERuntimeLogLevels Out_Level);
+	virtual void CreateFilters(ERuntimeLogLevels Out_Level);
 
+	// It is for resetting old widgets without completely destroying whole log system.
 	UFUNCTION()
 	virtual void OnLogsReset();
 
+	// It is for search box.
 	UFUNCTION()
-	virtual void OnTextCommit(const FText& InText, ETextCommit::Type InCommitType);
+	virtual void OnSearchTextCommit(const FText& InText, ETextCommit::Type InCommitType);
 
-	TMap<FString, URL_Each_Log*> MAP_Widgets;
+	UFUNCTION()
+	virtual void OnFilterSelection(FString SelectedItem, ESelectInfo::Type SelectionType);
 
 public:
 
@@ -40,18 +47,26 @@ public:
 	virtual TSharedRef<SWidget> RebuildWidget() override;
 
 	/*
-	* BindWidget & BindWidgetOptional
 	* You need to open "Show Inherited Variables" to show it in "Variables" section.
 	*/ 
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
-	UCanvasPanel* CanvasPanel = nullptr;
+	UCanvasPanel* Canvas_Panel = nullptr;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidgetOptional))
+	UVerticalBox* Design_Tree = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UScrollBox* Container_Logs = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UEditableTextBox* Search_Box = nullptr;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UComboBoxString* Filter_Criticality = nullptr;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	FString Str_All_Criticalities = "All Levels";
 
 	/*
 	* It has to be a derived blueprint class !

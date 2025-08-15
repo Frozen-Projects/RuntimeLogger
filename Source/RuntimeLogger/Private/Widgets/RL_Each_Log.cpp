@@ -80,6 +80,7 @@ void URL_Each_Log::SetLogParams(FString UUID, TMap<FString, FString> OtherParams
 
 	this->Title_UUID->SetColorAndOpacity(TitleColor);
 	this->Title_UUID->SetText(FText::FromString(UUID));
+	this->SetLogLevel(RL_Level);
 
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this->World, 0);
 
@@ -98,4 +99,19 @@ void URL_Each_Log::SetLogParams(FString UUID, TMap<FString, FString> OtherParams
 			NewParam->SetLogParams(EachParam.Key, EachParam.Value, RL_Level);
 		}
 	}
+}
+
+FString URL_Each_Log::GetLogLevel()
+{
+	return this->RL_Level_String;
+}
+
+void URL_Each_Log::SetLogLevel(ERuntimeLogLevels RL_Level)
+{
+	const FString RawLogLevel = UEnum::GetValueAsString(RL_Level);
+	
+	TArray<FString> LogLevelSections;
+	RawLogLevel.ParseIntoArray(LogLevelSections, TEXT("::"));
+
+	this->RL_Level_String = LogLevelSections[1];
 }

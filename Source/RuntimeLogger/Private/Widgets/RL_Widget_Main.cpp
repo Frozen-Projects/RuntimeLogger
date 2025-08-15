@@ -1,8 +1,15 @@
 #include "Widgets/RL_Widget_Main.h"
+#include "JsonUtilities.h"
+#include "JsonObjectWrapper.h"
 
 void URL_Widget_Main::NativePreConstruct()
 {
 	Super::NativePreConstruct();
+
+	if (IsValid(this->Filter_Criticality))
+	{
+		this->Filter_Criticality->SetSelectedOption(Str_All_Criticalities);
+	}
 }
 
 void URL_Widget_Main::NativeConstruct()
@@ -10,7 +17,8 @@ void URL_Widget_Main::NativeConstruct()
 	Super::NativeConstruct();
 	
 	this->SetSubsystem();
-	this->Search_Box->OnTextCommitted.AddDynamic(this, &URL_Widget_Main::OnTextCommit);
+	this->Search_Box->OnTextCommitted.AddDynamic(this, &URL_Widget_Main::OnSearchTextCommit);
+	this->Filter_Criticality->OnSelectionChanged.AddDynamic(this, &::URL_Widget_Main::OnFilterSelection);
 }
 
 void URL_Widget_Main::NativeDestruct()
@@ -54,6 +62,12 @@ void URL_Widget_Main::SetSubsystem()
 
 void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeLogLevels Out_Level)
 {
+	this->GenerateChildWidgets(Out_UUID, Out_Log, Out_Level);
+	this->CreateFilters(Out_Level);
+}
+
+void URL_Widget_Main::GenerateChildWidgets(FString Out_UUID, FString Out_Log, ERuntimeLogLevels Out_Level)
+{
 	if (!IsValid(this->World))
 	{
 		UE_LOG(LogTemp, Fatal, TEXT("World is not valid !"));
@@ -85,9 +99,9 @@ void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeL
 		UE_LOG(LogTemp, Fatal, TEXT("Player Controller is not valid!"));
 		return;
 	}
-	
+
 	URL_Each_Log* Each_Log = CreateWidget<URL_Each_Log>(PlayerController, Each_Log_Class);
-	
+
 	if (!IsValid(Each_Log))
 	{
 		UE_LOG(LogTemp, Fatal, TEXT("Each Log Widget is not valid!"));
@@ -95,7 +109,7 @@ void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeL
 	}
 
 	UPanelSlot* AddedSlot = this->Container_Logs->AddChild(Each_Log);
-	
+
 	if (!IsValid(AddedSlot))
 	{
 		UE_LOG(LogTemp, Fatal, TEXT("Failed to add Each Log Widget to Container!"));
@@ -116,8 +130,22 @@ void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeL
 
 	TMap<FString, FString> Map_LogData = this->LoggerSubsystem->JsonToMap(Out_Log);
 	Each_Log->SetLogParams(Out_UUID, Map_LogData, Out_Level, Log_Param_Class);
-	
+
 	this->MAP_Widgets.Add(Out_UUID, Each_Log);
+}
+
+void URL_Widget_Main::CreateFilters(ERuntimeLogLevels Out_Level)
+{
+	TArray<FString> String_Sections;
+	UEnum::GetValueAsString(Out_Level).ParseIntoArray(String_Sections, TEXT("::"));
+	const FString Criticality_String = String_Sections[1];
+
+	const int RetVal = this->Filter_Criticality->FindOptionIndex(Criticality_String);
+
+	if (RetVal == -1)
+	{
+		this->Filter_Criticality->AddOption(Criticality_String);
+	}	
 }
 
 void URL_Widget_Main::OnLogsReset()
@@ -128,6 +156,11 @@ void URL_Widget_Main::OnLogsReset()
 	}
 
 	TArray<UWidget*> Children = this->Container_Logs->GetAllChildren();
+
+	if (Children.IsEmpty())
+	{
+		return;
+	}
 
 	for (UWidget* Each_Child : Children)
 	{
@@ -140,7 +173,7 @@ void URL_Widget_Main::OnLogsReset()
 	this->Container_Logs->ClearChildren();
 }
 
-void URL_Widget_Main::OnTextCommit(const FText& InText, ETextCommit::Type InCommitType)
+void URL_Widget_Main::OnSearchTextCommit(const FText& InText, ETextCommit::Type InCommitType)
 {
 	if (InCommitType == ETextCommit::OnEnter)
 	{
@@ -169,5 +202,48 @@ void URL_Widget_Main::OnTextCommit(const FText& InText, ETextCommit::Type InComm
 		}
 
 		this->Container_Logs->ScrollWidgetIntoView(FoundWidget, false);
+	}
+}
+
+void URL_Widget_Main::OnFilterSelection(FString SelectedItem, ESelectInfo::Type SelectionType)
+{
+	if (SelectedItem == Str_All_Criticalities)
+	{
+		TArray<URL_Each_Log*> LogWidgets;
+		this->MAP_Widgets.GenerateValueArray(LogWidgets);
+
+		for (URL_Each_Log* Each_Widget : LogWidgets)
+		{
+			if (!IsValid(Each_Widget))
+			{
+				continue;
+			}
+
+			Each_Widget->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+
+	else
+	{
+		TArray<URL_Each_Log*> LogWidgets;
+		this->MAP_Widgets.GenerateValueArray(LogWidgets);
+
+		for (URL_Each_Log* Each_Widget : LogWidgets)
+		{
+			if (!IsValid(Each_Widget))
+			{
+				continue;
+			}
+
+			if (SelectedItem != Each_Widget->GetLogLevel())
+			{
+				Each_Widget->SetVisibility(ESlateVisibility::Collapsed);
+			}
+
+			else
+			{
+				Each_Widget->SetVisibility(ESlateVisibility::Visible);
+			}
+		}
 	}
 }

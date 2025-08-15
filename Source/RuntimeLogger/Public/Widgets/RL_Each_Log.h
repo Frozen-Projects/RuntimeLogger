@@ -15,6 +15,7 @@ class RUNTIMELOGGER_API URL_Each_Log : public UUserWidget
 private:
 
 	UWorld* World = nullptr;
+	FString RL_Level_String;
 
 	UFUNCTION()
 	virtual void CopyToClipBoard();
@@ -28,6 +29,8 @@ public:
 	virtual TSharedRef<SWidget> RebuildWidget() override;
 
 	virtual void SetLogParams(FString UUID, TMap<FString, FString> OtherParams, ERuntimeLogLevels RL_Level, TSubclassOf<URL_Each_Log_Param> ParamClass);
+	virtual FString GetLogLevel();
+	virtual void SetLogLevel(ERuntimeLogLevels RL_Level);
 
 	/*
 	* BindWidget & BindWidgetOptional
