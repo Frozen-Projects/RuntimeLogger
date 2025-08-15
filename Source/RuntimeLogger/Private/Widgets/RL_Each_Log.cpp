@@ -8,6 +8,7 @@ void URL_Each_Log::NativePreConstruct()
 void URL_Each_Log::NativeConstruct()
 {
 	Super::NativeConstruct();
+	
 	this->Button_UUID->OnClicked.AddDynamic(this, &URL_Each_Log::CopyToClipBoard);
 
 	if (IsValid(this->World))

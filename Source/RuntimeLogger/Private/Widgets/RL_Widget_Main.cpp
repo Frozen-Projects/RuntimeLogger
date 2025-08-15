@@ -8,7 +8,9 @@ void URL_Widget_Main::NativePreConstruct()
 void URL_Widget_Main::NativeConstruct()
 {
 	Super::NativeConstruct();
+	
 	this->SetSubsystem();
+	this->Search_Box->OnTextCommitted.AddDynamic(this, &URL_Widget_Main::OnTextCommit);
 }
 
 void URL_Widget_Main::NativeDestruct()
@@ -47,6 +49,7 @@ void URL_Widget_Main::SetSubsystem()
 
 	this->LoggerSubsystem = TempSubsystem;
 	this->LoggerSubsystem->Delegate_Runtime_Logger.AddDynamic(this, &URL_Widget_Main::OnLogReceived);
+	this->LoggerSubsystem->Delegate_Runtime_Logger_Reset.AddDynamic(this, &URL_Widget_Main::OnLogsReset);
 }
 
 void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeLogLevels Out_Level)
@@ -113,4 +116,58 @@ void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeL
 
 	TMap<FString, FString> Map_LogData = this->LoggerSubsystem->JsonToMap(Out_Log);
 	Each_Log->SetLogParams(Out_UUID, Map_LogData, Out_Level, Log_Param_Class);
+	
+	this->MAP_Widgets.Add(Out_UUID, Each_Log);
+}
+
+void URL_Widget_Main::OnLogsReset()
+{
+	if (!IsValid(this->Container_Logs))
+	{
+		return;
+	}
+
+	TArray<UWidget*> Children = this->Container_Logs->GetAllChildren();
+
+	for (UWidget* Each_Child : Children)
+	{
+		if (IsValid(Each_Child))
+		{
+			Each_Child->RemoveFromParent();
+		}
+	}
+
+	this->Container_Logs->ClearChildren();
+}
+
+void URL_Widget_Main::OnTextCommit(const FText& InText, ETextCommit::Type InCommitType)
+{
+	if (InCommitType == ETextCommit::OnEnter)
+	{
+		if (InText.IsEmpty())
+		{
+			return;
+		}
+
+		const FString Target_UUID = InText.ToString();
+
+		if (this->MAP_Widgets.IsEmpty())
+		{
+			return;
+		}
+
+		if (!IsValid(this->Container_Logs))
+		{
+			return;
+		}
+
+		URL_Each_Log* FoundWidget = *this->MAP_Widgets.Find(Target_UUID);
+
+		if (!IsValid(FoundWidget))
+		{
+			return;
+		}
+
+		this->Container_Logs->ScrollWidgetIntoView(FoundWidget, false);
+	}
 }

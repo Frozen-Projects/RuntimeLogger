@@ -23,6 +23,14 @@ private:
 	UFUNCTION()
 	virtual void OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeLogLevels Out_Level);
 
+	UFUNCTION()
+	virtual void OnLogsReset();
+
+	UFUNCTION()
+	virtual void OnTextCommit(const FText& InText, ETextCommit::Type InCommitType);
+
+	TMap<FString, URL_Each_Log*> MAP_Widgets;
+
 public:
 
 	virtual void NativePreConstruct() override;
@@ -41,6 +49,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UScrollBox* Container_Logs = nullptr;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UEditableTextBox* Search_Box = nullptr;
 
 	/*
 	* It has to be a derived blueprint class !

@@ -15,6 +15,8 @@ class FRuntimeLogger_Thread;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FDelegateRuntimeLogger, FString, Out_UUID, FString, Out_Log, ERuntimeLogLevels, Out_Level);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDelegateRuntimeLoggerReset);
+
 UCLASS()
 class RUNTIMELOGGER_API URuntimeLoggerSubsystem : public UGameInstanceSubsystem
 {
@@ -67,6 +69,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "FF_RealSense")
 	FDelegateRuntimeLogger Delegate_Runtime_Logger;
+
+	UPROPERTY(BlueprintAssignable, Category = "FF_RealSense")
+	FDelegateRuntimeLoggerReset Delegate_Runtime_Logger_Reset;
 
 	UFUNCTION(BlueprintCallable, Category = "Runtime Logger")
 	virtual TMap<FString, FString> JsonToMap(FString JsonString);

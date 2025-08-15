@@ -190,6 +190,7 @@ void URuntimeLoggerSubsystem::ResetLogs()
 	
 	FScopeLock Lock(&this->LogGuard);
 	this->LogDb.Empty();
+	this->Delegate_Runtime_Logger_Reset.Broadcast();
 
 	this->LoggerThread->TriggerWakeEvent();
 }

@@ -49,4 +49,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UVerticalBox* ParamsBody = nullptr;
 
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	URetainerBox* RetainerBox = nullptr;
+
 };
