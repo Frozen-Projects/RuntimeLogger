@@ -1,30 +1,55 @@
 # RuntimeLogger
 
 ## Description
-This plugin allows you to store, write and visualize your runtime generated logs from various threads and create notifications about them. It is blueprint exposed. We did this plugin especially for shipping builds and runtime.
+This plugin allows you to store, write, and visualize your runtime-generated logs from various threads and create notifications about them. It is Blueprint-exposed and designed especially for shipping builds and runtime usage.
 
 ## Workflow
-- <b>Log Manager (Blueprint Exposed)</b> is a UGameInstanceSubsystem (Runtime Logger Subsystem). So, it doesn't affected from level changes and has singleton/centralized design. So, you can access it from everywhere.
+- **Log Manager (Blueprint Exposed)**  
+  This is a `UGameInstanceSubsystem` (Runtime Logger Subsystem).  
+  It is unaffected by level changes and has a singleton/centralized design, so you can access it from anywhere.
 
-- <b>Log Message (Blueprint Exposed)</b> function uses ``TQueue`` for gathering your messages from every thread without race condition. Each message is a ``json object``. You can define your own structure but it has automatic ``UUID (FGuid based)``, ``LogTime (FDateTime::Now())`` and ``LogLevel (ERuntimeLogLevels custom enum)`` parameters. We suggest you to add ``Plugin (or module) Name``, ``ClassName`` and ``FunctionName`` parameters. If you use ``C++`` you can use ``__FUNCSIG__`` to add class and function name automatically. It is a compiler feature.
+- **Log Message (Blueprint Exposed)**  
+  This function uses `TQueue` to gather your messages from every thread without race conditions.  
+  Each message is a JSON object. You can define your own structure, but it automatically includes:
+  - `UUID` (FGuid-based)
+  - `LogTime` (`FDateTime::Now()`)
+  - `LogLevel` (ERuntimeLogLevels custom enum)
 
-- <b>Record Message</b> function is a public C++ function which running on FRunnableThread. So, it won't affect game thread performance even if there are lots of logs. This thread is on wait state if there is no log to record. So, other processes can use it and you won't waste your resources.
+  We suggest adding:
+  - Plugin (or module) name
+  - Class name
+  - Function name  
 
-It stores your log in a private ``TMap<FString, FString>`` which you can access with getters. Key is ``UUID`` and Value is ``other parameters than UUID``.
+  If you use C++, you can take advantage of `__FUNCSIG__` to automatically add class and function names (compiler feature).
 
-It also writes a text file at your project's save directory with ``ProjectName_RuntimeLogger_Date.log`` like name. File structure is a ``json object array``.
+- **Record Message**  
+  This is a public C++ function running on `FRunnableThread`, so it won't affect game thread performance even with many logs. If there are no logs to record, the thread stays in a wait state, avoiding wasted resources.
 
-If you want to use that file before closing your game, you have to put ``]`` at the end. After closing it, function automatically adds it. We did like this because each entry appends that text file and we don't want to open and close file handle everytime because performance reasons.
+  Logs are stored in a private `TMap<FString, FString>` accessible via getters:  
+  - **Key:** UUID  
+  - **Value:** Other parameters  
 
-It has a delegate that can inform you about generated log. Its execution chain comes from ``AsyncTask(GameThread)`` So, you can safely create a widget from it or you can add furthere features like API callings, e-mails senders or databases drivers to write logs to other services.
+  It also writes a text file in your project's `Saved` directory named like:  
+  `ProjectName_RuntimeLogger_Date.log`  
 
-- <b> Automatic Widget with Search Box and Criticality Filter</b>
+  The file contains a JSON object array.  
+  - If you want to use it before the game closes, you must manually append a `]` at the end.
+  - Upon closing, the function automatically appends it.  
+
+  We append entries without reopening the file handle each time for performance reasons.  
+  A delegate notifies you when a log is generated, and its execution chain runs via `AsyncTask(GameThread)`, allowing safe widget creation.  
+  You can extend this with features like API calls, email notifications, or database writes.
+
+- **Automatic Widget with Search Box and Criticality Filter**
 
 ## Tutorial
-You can look at plugin's content folder. You will see sample blueprints.
+Check the plugin's `Content` folder for sample Blueprints.
 
 ## Platform Support
-I didn't use any platform specific code. So, it should work with any platform. But I have only Windows and Android devices. So, I can't give support about other platforms especially for their editor side.
+No platform-specific code is used, so it should work on any platform.  
+Tested only on **Windows** and **Android** — no official support for others, especially editor-side.
 
 ## Engine Support
-I don't support ``UE4`` and older versions than ``latest version``. I will update version ``after one month`` of new major release.
+No UE4 or older versions are supported.  
+Only the **latest** Unreal Engine version is supported.  
+Updates will be provided about one month after a new major release.
