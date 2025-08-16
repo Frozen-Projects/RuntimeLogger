@@ -171,6 +171,10 @@ void URL_Widget_Main::OnLogsReset()
 	}
 
 	this->Container_Logs->ClearChildren();
+	this->Filter_Criticality->ClearOptions();
+	this->Filter_Criticality->AddOption(Str_All_Criticalities);
+
+	this->MAP_Widgets.Empty();
 }
 
 void URL_Widget_Main::OnSearchTextCommit(const FText& InText, ETextCommit::Type InCommitType)
@@ -207,11 +211,11 @@ void URL_Widget_Main::OnSearchTextCommit(const FText& InText, ETextCommit::Type 
 
 void URL_Widget_Main::OnFilterSelection(FString SelectedItem, ESelectInfo::Type SelectionType)
 {
+	TArray<URL_Each_Log*> LogWidgets;
+	this->MAP_Widgets.GenerateValueArray(LogWidgets);
+
 	if (SelectedItem == Str_All_Criticalities)
 	{
-		TArray<URL_Each_Log*> LogWidgets;
-		this->MAP_Widgets.GenerateValueArray(LogWidgets);
-
 		for (URL_Each_Log* Each_Widget : LogWidgets)
 		{
 			if (!IsValid(Each_Widget))
@@ -225,9 +229,6 @@ void URL_Widget_Main::OnFilterSelection(FString SelectedItem, ESelectInfo::Type 
 
 	else
 	{
-		TArray<URL_Each_Log*> LogWidgets;
-		this->MAP_Widgets.GenerateValueArray(LogWidgets);
-
 		for (URL_Each_Log* Each_Widget : LogWidgets)
 		{
 			if (!IsValid(Each_Widget))
