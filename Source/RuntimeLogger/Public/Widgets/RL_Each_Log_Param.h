@@ -26,7 +26,8 @@ public:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual TSharedRef<SWidget> RebuildWidget() override;
 
-	virtual void SetLogParams(FString ParamName, FString ParamValue, ERuntimeLogLevels RL_Level);
+	// Colors Index: 0 - Info, 1 - Warning, 2 - Error
+	virtual void SetLogParams(FString ParamName, FString ParamValue, ERuntimeLogLevels RL_Level, TArray<FColor> Colors);
 
 	/*
 	* BindWidget & BindWidgetOptional

@@ -46,9 +46,14 @@ void URL_Each_Log::CopyToClipBoard()
 	FPlatformApplicationMisc::ClipboardCopy(*this->Title_UUID->GetText().ToString());
 }
 
-void URL_Each_Log::SetLogParams(FString UUID, TMap<FString, FString> OtherParams, ERuntimeLogLevels RL_Level, TSubclassOf<URL_Each_Log_Param> ParamClass)
+void URL_Each_Log::SetLogParams(FString UUID, TMap<FString, FString> OtherParams, ERuntimeLogLevels RL_Level, TSubclassOf<URL_Each_Log_Param> ParamClass, TArray<FColor> Colors)
 {
 	if (!ParamClass)
+	{
+		return;
+	}
+
+	if (Colors.Num() < 3)
 	{
 		return;
 	}
@@ -59,22 +64,22 @@ void URL_Each_Log::SetLogParams(FString UUID, TMap<FString, FString> OtherParams
 	{
 		case ERuntimeLogLevels::Info:
 
-			TitleColor = FSlateColor(FLinearColor::White);
+			TitleColor = Colors[0].ReinterpretAsLinear();
 			break;
 
 		case ERuntimeLogLevels::Warning:
 
-			TitleColor = FSlateColor(FLinearColor::Yellow);
+			TitleColor = Colors[1].ReinterpretAsLinear();
 			break;
 
 		case ERuntimeLogLevels::Critical:
 
-			TitleColor = FSlateColor(FLinearColor::Red);
+			TitleColor = Colors[2].ReinterpretAsLinear();
 			break;
 
 		default:
 
-			TitleColor = FSlateColor(FLinearColor::White);
+			TitleColor = Colors[0].ReinterpretAsLinear();
 			break;
 	}
 
@@ -96,7 +101,7 @@ void URL_Each_Log::SetLogParams(FString UUID, TMap<FString, FString> OtherParams
 		if (IsValid(NewParam))
 		{
 			this->ParamsBody->AddChild(NewParam);
-			NewParam->SetLogParams(EachParam.Key, EachParam.Value, RL_Level);
+			NewParam->SetLogParams(EachParam.Key, EachParam.Value, RL_Level, Colors);
 		}
 	}
 }

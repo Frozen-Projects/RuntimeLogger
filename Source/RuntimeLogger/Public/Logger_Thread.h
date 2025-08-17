@@ -18,13 +18,12 @@ public:
 	// Destructor.
 	virtual ~FRuntimeLogger_Thread() override;
 
-	// Game Thread.
 	virtual bool Init() override;
 
-	// Runnable Thread.
+	// Running on runnable thread.
 	virtual uint32 Run() override;
 
-	// Game Thread.
+	// You need to clean up the thread manually after calling this function.
 	virtual void Stop() override;
 
 	virtual void TriggerWakeEvent();

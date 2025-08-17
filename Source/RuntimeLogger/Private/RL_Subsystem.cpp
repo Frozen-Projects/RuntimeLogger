@@ -41,15 +41,17 @@ void URuntimeLoggerSubsystem::OpenLogFile()
 void URuntimeLoggerSubsystem::StartLogging()
 {
 	this->OpenLogFile();
-	FRuntimeLogger_Thread* TempThread = new FRuntimeLogger_Thread(this);
 
-	if (!TempThread)
+	this->LoggerThread = MakeShared<FRuntimeLogger_Thread>(this);
+
+	if (!this->LoggerThread.IsValid())
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("Runtime logger thread is not valid !"));
+		this->LoggerThread.Reset();
+		this->LoggerThread = nullptr;
+
+		UE_LOG(LogTemp, Fatal, TEXT("Runtime logger thread failed to create !"));
 		return;
 	}
-
-	this->LoggerThread = TempThread;
 }
 
 ERuntimeLogLevels URuntimeLoggerSubsystem::GetLogLevelFromString(FString LogLevelString)
@@ -66,7 +68,7 @@ void URuntimeLoggerSubsystem::CleanupLogs()
 {
 	if (this->LoggerThread)
 	{
-		delete this->LoggerThread;
+		this->LoggerThread.Reset();
 		this->LoggerThread = nullptr;
 	}
 

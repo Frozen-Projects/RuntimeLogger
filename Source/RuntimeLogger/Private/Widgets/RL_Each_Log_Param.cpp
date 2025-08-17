@@ -31,30 +31,35 @@ void URL_Each_Log_Param::CopyToClipBoard()
 	FPlatformApplicationMisc::ClipboardCopy(*this->Entry_Description->GetText().ToString());
 }
 
-void URL_Each_Log_Param::SetLogParams(FString ParamName, FString ParamValue, ERuntimeLogLevels RL_Level)
+void URL_Each_Log_Param::SetLogParams(FString ParamName, FString ParamValue, ERuntimeLogLevels RL_Level, TArray<FColor> Colors)
 {
+	if (Colors.Num() < 3)
+	{
+		return;
+	}
+
 	FSlateColor TitleColor;
 
 	switch (RL_Level)
 	{
 		case ERuntimeLogLevels::Info:
 
-			TitleColor = FSlateColor(FLinearColor::White);
+			TitleColor = Colors[0].ReinterpretAsLinear();
 			break;
 
 		case ERuntimeLogLevels::Warning:
 
-			TitleColor = FSlateColor(FLinearColor::Yellow);
+			TitleColor = Colors[1].ReinterpretAsLinear();
 			break;
 
 		case ERuntimeLogLevels::Critical:
 
-			TitleColor = FSlateColor(FLinearColor::Red);
+			TitleColor = Colors[2].ReinterpretAsLinear();
 			break;
 
 		default:
 
-			TitleColor = FSlateColor(FLinearColor::White);
+			TitleColor = Colors[0].ReinterpretAsLinear();
 			break;
 	}
 

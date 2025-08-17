@@ -41,8 +41,6 @@ FRuntimeLogger_Thread::~FRuntimeLogger_Thread()
 	if (this->RunnableThread)
 	{
 		this->RunnableThread->WaitForCompletion();
-		//this->RunnableThread->Kill(true);
-		
 		delete this->RunnableThread;
 		this->RunnableThread = nullptr;
 	}
@@ -64,17 +62,19 @@ uint32 FRuntimeLogger_Thread::Run()
 			continue;
 		}
 
-		if (IsValid(this->LoggerSubsystem))
+		if (!IsValid(this->LoggerSubsystem))
 		{
-			this->LoggerSubsystem->RecordMessages();
+			continue;
+		}
 
-			if (this->LoggerSubsystem->IsQueueEmpty())
-			{
-				this->WakeEvent->Wait();
-			}
+		this->LoggerSubsystem->RecordMessages();
+
+		if (this->LoggerSubsystem->IsQueueEmpty() && this->WakeEvent)
+		{
+			this->WakeEvent->Wait();
 		}
 	}
-	
+
 	return 0;
 }
 

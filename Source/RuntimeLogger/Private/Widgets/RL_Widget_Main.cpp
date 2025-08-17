@@ -1,6 +1,4 @@
 #include "Widgets/RL_Widget_Main.h"
-#include "JsonUtilities.h"
-#include "JsonObjectWrapper.h"
 
 void URL_Widget_Main::NativePreConstruct()
 {
@@ -129,7 +127,13 @@ void URL_Widget_Main::GenerateChildWidgets(FString Out_UUID, FString Out_Log, ER
 	ScrollBoxSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
 
 	TMap<FString, FString> Map_LogData = this->LoggerSubsystem->JsonToMap(Out_Log);
-	Each_Log->SetLogParams(Out_UUID, Map_LogData, Out_Level, Log_Param_Class);
+
+	TArray<FColor> Log_Colors;
+	Log_Colors.Add(this->Color_Info);
+	Log_Colors.Add(this->Color_Warning);
+	Log_Colors.Add(this->Color_Error);
+
+	Each_Log->SetLogParams(Out_UUID, Map_LogData, Out_Level, Log_Param_Class, Log_Colors);
 
 	this->MAP_Widgets.Add(Out_UUID, Each_Log);
 }

@@ -57,6 +57,9 @@ public:
 	UVerticalBox* Design_Tree = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UScrollBox* Horizontal_Scroller = nullptr;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UScrollBox* Container_Logs = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
@@ -65,8 +68,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UComboBoxString* Filter_Criticality = nullptr;
 
-	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UPROPERTY(BlueprintReadWrite)
 	FString Str_All_Criticalities = "All Levels";
+
+	UPROPERTY(BlueprintReadWrite)
+	FColor Color_Info = FColor::Purple;
+
+	UPROPERTY(BlueprintReadWrite)
+	FColor Color_Warning = FColor::Yellow;
+
+	UPROPERTY(BlueprintReadWrite)
+	FColor Color_Error = FColor::Red;
 
 	/*
 	* It has to be a derived blueprint class !

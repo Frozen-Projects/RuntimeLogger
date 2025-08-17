@@ -25,7 +25,7 @@ class RUNTIMELOGGER_API URuntimeLoggerSubsystem : public UGameInstanceSubsystem
 private:
 
 	mutable FCriticalSection LogGuard;
-	FRuntimeLogger_Thread* LoggerThread = nullptr;
+	TSharedPtr<FRuntimeLogger_Thread> LoggerThread;
 	
 	TQueue<FString> LogQueue;
 	TMap<FString, FString> LogDb;
