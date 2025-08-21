@@ -52,28 +52,28 @@ public:
 	 * @param Message A map containing key-value pairs of the message to log. Ideally, it should contain relevant information such as plugin name, function name, and any other details. Log time and UUID will be added automatically.
 	 * @return A unique identifier for the logged message.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Runtime Logger")
+	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger")
 	virtual FString LogMessage(TMap<FString, FString> Message, ERuntimeLogLevels RuntimeLogLevel = ERuntimeLogLevels::Info);
 
-	UFUNCTION(BlueprintCallable, Category = "Runtime Logger")
+	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger")
 	virtual TMap<FString, FString> GetLogDb();
 
-	UFUNCTION(BlueprintCallable, Category = "Runtime Logger")
+	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger")
 	virtual void ResetLogs();
 
-	UFUNCTION(BlueprintPure, Category = "Runtime Logger")
+	UFUNCTION(BlueprintPure, Category = "Frozen Forest|Runtime Logger")
 	virtual FString GetLogFilePath() const;
 
-	UFUNCTION(BlueprintPure, Category = "Runtime Logger")
+	UFUNCTION(BlueprintPure, Category = "Frozen Forest|Runtime Logger")
 	virtual FString GetLog(const FString& UUID) const;
 
-	UPROPERTY(BlueprintAssignable, Category = "FF_RealSense")
+	UPROPERTY(BlueprintAssignable, Category = "Frozen Forest|Runtime Logger")
 	FDelegateRuntimeLogger Delegate_Runtime_Logger;
 
 	UPROPERTY(BlueprintAssignable, Category = "FF_RealSense")
 	FDelegateRuntimeLoggerReset Delegate_Runtime_Logger_Reset;
 
-	UFUNCTION(BlueprintCallable, Category = "Runtime Logger")
+	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger")
 	virtual TMap<FString, FString> JsonToMap(FString JsonString);
 
 	/*
