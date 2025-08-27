@@ -9,7 +9,7 @@
 void URuntimeLoggerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	this->StartLogging();
+	//this->StartLogging();
 }
 
 void URuntimeLoggerSubsystem::Deinitialize()

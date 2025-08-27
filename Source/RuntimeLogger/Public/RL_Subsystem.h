@@ -36,7 +36,7 @@ private:
 
 	virtual void OpenLogFile();
 	virtual void CleanupLogs();
-	virtual void StartLogging();
+
 	static ERuntimeLogLevels GetLogLevelFromString(FString LogLevelString);
 
 public:
@@ -46,6 +46,9 @@ public:
 
 	virtual void RecordMessages();
 	virtual bool IsQueueEmpty();
+
+	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger")
+	virtual void StartLogging();
 
 	/**
 	 * Logs a message with a unique identifier.
