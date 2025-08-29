@@ -11,22 +11,22 @@ void URL_Static_Functions::LogString(int32 InLogLevel, FString Log)
 {
     switch (InLogLevel)
     {
-    case 0:
+        case 0:
 
-        UE_LOG(LogTemp, Display, TEXT("%s"), *FString(Log));
-        return;
+            UE_LOG(LogTemp, Display, TEXT("%s"), *FString(Log));
+            return;
 
-    case 1:
+        case 1:
 
-        UE_LOG(LogTemp, Warning, TEXT("%s"), *FString(Log));
-        return;
+            UE_LOG(LogTemp, Warning, TEXT("%s"), *FString(Log));
+            return;
 
-    case 2:
+        case 2:
 
-        UE_LOG(LogTemp, Error, TEXT("%s"), *FString(Log));
-        return;
+            UE_LOG(LogTemp, Error, TEXT("%s"), *FString(Log));
+            return;
 
-    default:
-        break;
+        default:
+            break;
     }
 }
