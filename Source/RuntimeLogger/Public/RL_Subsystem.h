@@ -73,7 +73,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Frozen Forest|Runtime Logger")
 	FDelegateRuntimeLogger Delegate_Runtime_Logger;
 
-	UPROPERTY(BlueprintAssignable, Category = "FF_RealSense")
+	UPROPERTY(BlueprintAssignable, Category = "Frozen Forest|Runtime Logger")
 	FDelegateRuntimeLoggerReset Delegate_Runtime_Logger_Reset;
 
 	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger")
