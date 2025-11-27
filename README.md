@@ -12,7 +12,9 @@ After enabling this plugin, your ``FOutputDevice`` for ``UE_LOG`` will automatic
 ````
 UE_LOG(LogTemp, Warning, TEXT("YOUR_AWASOME_LOG"))
 ````
-it will be captured by this plugin, additional to ``Output Window`` showing. So, you don't have to do something special. Other categories behave as usual.<br><br>
+it will be captured by this plugin, additional to ``Output Window`` showing.<br>
+
+So, you don't have to do something special. Other categories behave as usual.<br><br>
 We also added a blueprint exposed function name ``Log Message``. Its message accepts ``FJsonObjectWrapper``. Because when your project groves, single sentenced logs won't be enough and you have add other sections like ``Plugin or Module Name``, ``Function Name``, ``Details`` and etc. In that case, ``JSON`` gives us more tidy logs.<br>
 If you are C++ developer`(It won't work on blueprints.), we suggest you to use ``__FUNCTION__`` parameter. It is a compiler feature from ``MSVC``. Sample Use Case:<br>
 ````
