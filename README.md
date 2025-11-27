@@ -15,11 +15,14 @@ UE_LOG(LogTemp, Warning, TEXT("YOUR_AWASOME_LOG"))
 it will be captured by this plugin, additional to appearing on ``Output Window``.<br>
 
 So, you don't have to do something special. Other categories behave as usual.<br><br>
-We also added a blueprint exposed function name ``Log Message``. Its message accepts ``FJsonObjectWrapper``. Because when your project groves, single sentenced logs won't be enough and you have add other sections like ``Plugin or Module Name``, ``Function Name``, ``Details`` and etc. In that case, ``JSON`` gives us more tidy logs.<br>
-If you are C++ developer`(It won't work on blueprints.), we suggest you to use ``__FUNCTION__`` parameter. It is a compiler feature from ``MSVC``. Sample Use Case:<br>
+
+We also added a blueprint exposed function that named ``Log Message``. Its message accepts ``FJsonObjectWrapper``. Because when your project groves, single sentenced logs won't be enough and you have to add other informations like ``Plugin or Module Name``, ``Function Name``, ``Details`` and etc. In that case, ``JSON`` gives us more tidy logs.<br>
+If you are C++ developer **(It won't work on blueprints.)** , we suggest you to use ``__FUNCTION__`` parameter. Because it automatically adds function and its owner class' name. It is a compiler feature from ``MSVC``. Sample Use Case:<br>
 ````
 FJsonObjectWrapper Log_Json;
 Log_Json.JsonObject->SetStringField("FunctionName", FString(ANSI_TO_TCHAR(__FUNCTION__)));
+
+Output Log: "{"FunctionName": "YourClass:YourFunction"}
 ````
 When your log captured, our system will automatically add an ``UE5 FGUID based UUID``, ``FDateTime::Now() based LogTime``, and its ``Verbosity level`` to that ``JSON``.
 
