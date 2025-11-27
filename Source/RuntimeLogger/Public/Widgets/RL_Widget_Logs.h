@@ -3,17 +3,19 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 
-#include "Widgets/RL_Widget_Includes.h"
-#include "RL_Subsystem.h"
+#include "Widgets/RL_Widget_Params.h"
 
-#include "RL_Each_Log_Param.generated.h"
+#include "RL_Widget_Logs.generated.h"
 
 UCLASS()
-class RUNTIMELOGGER_API URL_Each_Log_Param : public UUserWidget
+class RUNTIMELOGGER_API URL_Widget_Logs : public UUserWidget
 {
 	GENERATED_BODY()
 
 private:
+
+	UWorld* World = nullptr;
+	FString RL_Level_String;
 
 	UFUNCTION()
 	virtual void CopyToClipBoard();
@@ -27,7 +29,9 @@ public:
 	virtual TSharedRef<SWidget> RebuildWidget() override;
 
 	// Colors Index: 0 - Info, 1 - Warning, 2 - Error
-	virtual void SetLogParams(FString ParamName, FString ParamValue, ERuntimeLogLevels RL_Level, TArray<FColor> Colors);
+	virtual void SetLogParams(FString UUID, FString In_Log, ERuntimeLogLevels RL_Level, TSubclassOf<URL_Widget_Params> ParamClass, TArray<FColor> Colors);
+	virtual FString GetLogLevel();
+	virtual void SetLogLevel(ERuntimeLogLevels RL_Level);
 
 	/*
 	* BindWidget & BindWidgetOptional
@@ -38,18 +42,18 @@ public:
 	UCanvasPanel* CanvasPanel = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
-	UHorizontalBox* ParamsContainer = nullptr;
+	UButton* Button_UUID = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
-	UTextBlock* Entry_Title = nullptr;
+	UExpandableArea* LogParams = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
-	UTextBlock* Entry_Description = nullptr;
+	UTextBlock* Title_UUID = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
-	UTextBlock* Delimiter = nullptr;
+	UVerticalBox* ParamsBody = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
-	UButton* Button_Description = nullptr;
+	URetainerBox* RetainerBox = nullptr;
 
 };

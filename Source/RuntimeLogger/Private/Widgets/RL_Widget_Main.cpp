@@ -40,7 +40,7 @@ void URL_Widget_Main::SetSubsystem()
 
 	if (!IsValid(TempWorld))
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("Current Play World is not valid !"));
+		UE_LOG(LogTemp, Error, TEXT("Current Play World is not valid !"));
 		return;
 	}
 
@@ -49,13 +49,12 @@ void URL_Widget_Main::SetSubsystem()
 
 	if (!IsValid(TempSubsystem))
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("Runtime Logger Subsystem is not valid ! Make sure it is initialized in the GameInstance !"));
+		UE_LOG(LogTemp, Error, TEXT("Runtime Logger Subsystem is not valid ! Make sure it is initialized in the GameInstance !"));
 		return;
 	}
 
 	this->LoggerSubsystem = TempSubsystem;
 	this->LoggerSubsystem->Delegate_Runtime_Logger.AddDynamic(this, &URL_Widget_Main::OnLogReceived);
-	this->LoggerSubsystem->Delegate_Runtime_Logger_Reset.AddDynamic(this, &URL_Widget_Main::OnLogsReset);
 }
 
 void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeLogLevels Out_Level)
@@ -68,25 +67,25 @@ void URL_Widget_Main::GenerateChildWidgets(FString In_UUID, FString In_Log, ERun
 {
 	if (!IsValid(this->World))
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("World is not valid !"));
+		UE_LOG(LogTemp, Error, TEXT("World is not valid !"));
 		return;
 	}
 
 	if (!IsValid(this->LoggerSubsystem))
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("Runtime Logger Subsystem is not valid !"));
+		UE_LOG(LogTemp, Error, TEXT("Runtime Logger Subsystem is not valid !"));
 		return;
 	}
 
-	if (!Each_Log_Class)
+	if (!this->Each_Log_Class)
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("Each Log Class is not set !"));
+		UE_LOG(LogTemp, Error, TEXT("Each Log Class is not set !"));
 		return;
 	}
 
-	if (!Log_Param_Class)
+	if (!this->Log_Param_Class)
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("Log Param Class is not set !"));
+		UE_LOG(LogTemp, Error, TEXT("Log Param Class is not set !"));
 		return;
 	}
 
@@ -94,15 +93,15 @@ void URL_Widget_Main::GenerateChildWidgets(FString In_UUID, FString In_Log, ERun
 
 	if (!IsValid(PlayerController))
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("Player Controller is not valid!"));
+		UE_LOG(LogTemp, Error, TEXT("Player Controller is not valid!"));
 		return;
 	}
 
-	URL_Each_Log* Each_Log = CreateWidget<URL_Each_Log>(PlayerController, Each_Log_Class);
+	URL_Widget_Logs* Each_Log = CreateWidget<URL_Widget_Logs>(PlayerController, this->Each_Log_Class);
 
 	if (!IsValid(Each_Log))
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("Each Log Widget is not valid!"));
+		UE_LOG(LogTemp, Error, TEXT("Each Log Widget is not valid!"));
 		return;
 	}
 
@@ -110,7 +109,7 @@ void URL_Widget_Main::GenerateChildWidgets(FString In_UUID, FString In_Log, ERun
 
 	if (!IsValid(AddedSlot))
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("Failed to add Each Log Widget to Container!"));
+		UE_LOG(LogTemp, Error, TEXT("Failed to add Each Log Widget to Container!"));
 		return;
 	}
 
@@ -118,7 +117,7 @@ void URL_Widget_Main::GenerateChildWidgets(FString In_UUID, FString In_Log, ERun
 
 	if (!IsValid(ScrollBoxSlot))
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("Added Slot is not a ScrollBoxSlot!"));
+		UE_LOG(LogTemp, Error, TEXT("Added Slot is not a ScrollBoxSlot!"));
 		return;
 	}
 
@@ -126,14 +125,12 @@ void URL_Widget_Main::GenerateChildWidgets(FString In_UUID, FString In_Log, ERun
 	ScrollBoxSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
 	ScrollBoxSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
 
-	TMap<FString, FString> Map_LogData = this->LoggerSubsystem->JsonStrToMap(In_Log);
-
 	TArray<FColor> Log_Colors;
 	Log_Colors.Add(this->Color_Info);
 	Log_Colors.Add(this->Color_Warning);
 	Log_Colors.Add(this->Color_Error);
 
-	Each_Log->SetLogParams(In_UUID, Map_LogData, In_Level, Log_Param_Class, Log_Colors);
+	Each_Log->SetLogParams(In_UUID, In_Log, In_Level, this->Log_Param_Class, Log_Colors);
 
 	this->MAP_Widgets.Add(In_UUID, Each_Log);
 }
@@ -202,7 +199,7 @@ void URL_Widget_Main::OnSearchTextCommit(const FText& InText, ETextCommit::Type 
 			return;
 		}
 
-		URL_Each_Log* FoundWidget = *this->MAP_Widgets.Find(Target_UUID);
+		URL_Widget_Logs* FoundWidget = *this->MAP_Widgets.Find(Target_UUID);
 
 		if (!IsValid(FoundWidget))
 		{
@@ -215,12 +212,12 @@ void URL_Widget_Main::OnSearchTextCommit(const FText& InText, ETextCommit::Type 
 
 void URL_Widget_Main::OnFilterSelection(FString SelectedItem, ESelectInfo::Type SelectionType)
 {
-	TArray<URL_Each_Log*> LogWidgets;
+	TArray<URL_Widget_Logs*> LogWidgets;
 	this->MAP_Widgets.GenerateValueArray(LogWidgets);
 
 	if (SelectedItem == Str_All_Criticalities)
 	{
-		for (URL_Each_Log* Each_Widget : LogWidgets)
+		for (URL_Widget_Logs* Each_Widget : LogWidgets)
 		{
 			if (!IsValid(Each_Widget))
 			{
@@ -233,7 +230,7 @@ void URL_Widget_Main::OnFilterSelection(FString SelectedItem, ESelectInfo::Type 
 
 	else
 	{
-		for (URL_Each_Log* Each_Widget : LogWidgets)
+		for (URL_Widget_Logs* Each_Widget : LogWidgets)
 		{
 			if (!IsValid(Each_Widget))
 			{

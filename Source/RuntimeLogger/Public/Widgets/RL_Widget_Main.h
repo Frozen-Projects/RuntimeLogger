@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 
-#include "Widgets/RL_Each_Log.h"
+#include "Widgets/RL_Widget_Logs.h"
 
 #include "RL_Widget_Main.generated.h"
 
@@ -17,7 +17,7 @@ private:
 	UWorld* World = nullptr;
 	URuntimeLoggerSubsystem* LoggerSubsystem = nullptr;
 	
-	TMap<FString, URL_Each_Log*> MAP_Widgets;
+	TMap<FString, URL_Widget_Logs*> MAP_Widgets;
 	TSet<FString> Current_Criticalities;
 
 	virtual void SetSubsystem();
@@ -84,12 +84,12 @@ public:
 	* It has to be a derived blueprint class !
 	*/
 	UPROPERTY(BlueprintReadWrite)
-	TSubclassOf<URL_Each_Log> Each_Log_Class = nullptr;
+	TSubclassOf<URL_Widget_Logs> Each_Log_Class = nullptr;
 
 	/*
 	* It has to be a derived blueprint class !
 	*/
 	UPROPERTY(BlueprintReadWrite)
-	TSubclassOf<URL_Each_Log_Param> Log_Param_Class = nullptr;
+	TSubclassOf<URL_Widget_Params> Log_Param_Class = nullptr;
 
 };

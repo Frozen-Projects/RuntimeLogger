@@ -1,49 +1,34 @@
 # RuntimeLogger
 
 ## Description
-This plugin allows you to store, write, and visualize your runtime-generated logs from various threads and create notifications about them. It is Blueprint-exposed and designed especially for shipping builds and runtime usage.
+This plugin captures ``UE_LOG`` based entries at runtime to store and visualize them.
 
-## Workflow
+## Workflow / Tutorial
 - **Log Manager (Blueprint Exposed)**  
-  This is a `UGameInstanceSubsystem` (Runtime Logger Subsystem).  
-  It is unaffected by level changes and has a singleton/centralized design, so you can access it from anywhere.
+  This is a `UGameInstanceSubsystem` (Runtime Logger Subsystem). It is unaffected by level changes because its singleton design. Also you can access it from anywhere.
 
-- **Log Message (Blueprint Exposed)**  
-  This function uses `TQueue` to gather your messages from every thread without race conditions.  
-  Each message is a JSON object. You can define your own structure, but it automatically includes:
-  - `UUID` (FGuid-based)
-  - `LogTime` (`FDateTime::Now()`)
-  - `LogLevel` (ERuntimeLogLevels custom enum)
+- **Log Message (Blueprint Exposed)**
+After enabling this plugin, your ``FOutputDevice`` for ``UE_LOG`` will automatically change with our custom implementation. When you log something with ``LogTemp`` for example ``UE_LOG(LogTemp, Warning, TEXT("YOUR_AWASOME_LOG"))`` it will be captured by this plugin, additional to ``Output Window`` showing. So, you don't have to do something special. Other categories behave as usual.
+</br>
+</br>
+We also added a blueprint exposed function name ``Log Message``. Its message accepts ``FJsonObjectWrapper``. Because when your project groves, single sentenced logs won't be enough and you have add other sections like **"Plugin or Module Name", "Function Name", "Details" and etc."** In that case, ``JSON`` gives us more tidy logs. For example, if you are C++ developer, we suggest you to use ``__FUNCTION__`` parameter. (It won't work on blueprints.)
+</br>
+Sample Use Case: </br>
+```
+FJsonObjectWrapper Log_Json;
+Log_Json.JsonObject->SetStringField("FunctionName", FString(ANSI_TO_TCHAR(__FUNCTION__)));
+```
+</br>
+</br>
+When your log captured, our system will automatically add an ``UE5 FGUID based UUID``, ``FDateTime::Now() based LogTime`` and its ``Verbosity`` level to that JSON.
 
-  We suggest adding:
-  - Plugin (or module) name
-  - Class name
-  - Function name  
+- **Visualizing Logs**
+You have three options.
+- Widget Method: If you will look at plugin's content folder, you can see some sample Widgets. They are blueprint exposed C++ widgets. So, you can add other components and change their styles based on your needs as long as you protect their current components and their names. Just delete ``Spawn Actor Class`` from sample blueprint actor **(it use our in house third part window system.)** and add ``UI_RL_Viewport`` to viewport. When you log something, you can see it. That's all.
 
-  If you use C++, you can take advantage of `__FUNCSIG__` to automatically add class and function names (compiler feature).
+- File Method: You can see a new file created at ``Project/Saved/`` like this ``ProjectName_RuntimeLogger_DATE-TIME.log``. It is json based but While your project running, it doesn't have JSON ending ``]}`` to allow adding new entries. So you must mannualy append them at the end, if you want to use it before the game closes.   - Upon closing, the function automatically appends them.
 
-- **Record Message**  
-  This is a public C++ function running on `FRunnableThread`, so it won't affect game thread performance even with many logs. If there are no logs to record, the thread stays in a wait state, avoiding wasted resources.
-
-  Logs are stored in a private `TMap<FString, FString>` accessible via getters:  
-  - **Key:** UUID  
-  - **Value:** Other parameters  
-
-  It also writes a text file in your project's `Saved` directory named like:  
-  `ProjectName_RuntimeLogger_Date.log`  
-
-  The file contains a JSON object array.  
-  - If you want to use it before the game closes, you must manually append a `]` at the end.
-  - Upon closing, the function automatically appends it.  
-
-  We append entries without reopening the file handle each time for performance reasons.  
-  A delegate notifies you when a log is generated, and its execution chain runs via `AsyncTask(GameThread)`, allowing safe widget creation.  
-  You can extend this with features like API calls, email notifications, or database writes.
-
-- **Automatic Widget with Search Box and Criticality Filter**
-
-## Tutorial
-Check the plugin's `Content` folder for sample Blueprints.
+- Delegate Method: There is a delegate for captured logs. You can use them for additional purposes. For example your own widget system, mail sender, API connections and etc.
 
 ## Platform Support
 No platform-specific code is used, so it should work on any platform.  

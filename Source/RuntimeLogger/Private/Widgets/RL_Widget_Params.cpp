@@ -1,37 +1,37 @@
-#include "Widgets/RL_Each_Log_Param.h"
+#include "Widgets/RL_Widget_Params.h"
 
-void URL_Each_Log_Param::NativePreConstruct()
+void URL_Widget_Params::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 }
 
-void URL_Each_Log_Param::NativeConstruct()
+void URL_Widget_Params::NativeConstruct()
 {
 	Super::NativeConstruct();
-	this->Button_Description->OnClicked.AddDynamic(this, &URL_Each_Log_Param::CopyToClipBoard);
+	this->Button_Description->OnClicked.AddDynamic(this, &URL_Widget_Params::CopyToClipBoard);
 }
 
-void URL_Each_Log_Param::NativeDestruct()
+void URL_Widget_Params::NativeDestruct()
 {
 	Super::NativeDestruct();
 }
 
-void URL_Each_Log_Param::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+void URL_Widget_Params::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 }
 
-TSharedRef<SWidget> URL_Each_Log_Param::RebuildWidget()
+TSharedRef<SWidget> URL_Widget_Params::RebuildWidget()
 {
 	return Super::RebuildWidget();
 }
 
-void URL_Each_Log_Param::CopyToClipBoard()
+void URL_Widget_Params::CopyToClipBoard()
 {
 	FPlatformApplicationMisc::ClipboardCopy(*this->Entry_Description->GetText().ToString());
 }
 
-void URL_Each_Log_Param::SetLogParams(FString ParamName, FString ParamValue, ERuntimeLogLevels RL_Level, TArray<FColor> Colors)
+void URL_Widget_Params::SetLogParams(FString ParamName, FString ParamValue, ERuntimeLogLevels RL_Level, TArray<FColor> Colors)
 {
 	if (Colors.Num() < 3)
 	{

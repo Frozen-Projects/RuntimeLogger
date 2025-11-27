@@ -1,15 +1,15 @@
-#include "Widgets/RL_Each_Log.h"
+#include "Widgets/RL_Widget_Logs.h"
 
-void URL_Each_Log::NativePreConstruct()
+void URL_Widget_Logs::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 }
 
-void URL_Each_Log::NativeConstruct()
+void URL_Widget_Logs::NativeConstruct()
 {
 	Super::NativeConstruct();
 	
-	this->Button_UUID->OnClicked.AddDynamic(this, &URL_Each_Log::CopyToClipBoard);
+	this->Button_UUID->OnClicked.AddDynamic(this, &URL_Widget_Logs::CopyToClipBoard);
 
 	if (IsValid(this->World))
 	{
@@ -26,27 +26,27 @@ void URL_Each_Log::NativeConstruct()
 	this->World = TempWorld;
 }
 
-void URL_Each_Log::NativeDestruct()
+void URL_Widget_Logs::NativeDestruct()
 {
 	Super::NativeDestruct();
 }
 
-void URL_Each_Log::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+void URL_Widget_Logs::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 }
 
-TSharedRef<SWidget> URL_Each_Log::RebuildWidget()
+TSharedRef<SWidget> URL_Widget_Logs::RebuildWidget()
 {
 	return Super::RebuildWidget();
 }
 
-void URL_Each_Log::CopyToClipBoard()
+void URL_Widget_Logs::CopyToClipBoard()
 {
 	FPlatformApplicationMisc::ClipboardCopy(*this->Title_UUID->GetText().ToString());
 }
 
-void URL_Each_Log::SetLogParams(FString UUID, TMap<FString, FString> OtherParams, ERuntimeLogLevels RL_Level, TSubclassOf<URL_Each_Log_Param> ParamClass, TArray<FColor> Colors)
+void URL_Widget_Logs::SetLogParams(FString UUID, FString In_Log, ERuntimeLogLevels RL_Level, TSubclassOf<URL_Widget_Params> ParamClass, TArray<FColor> Colors)
 {
 	if (!ParamClass)
 	{
@@ -94,24 +94,31 @@ void URL_Each_Log::SetLogParams(FString UUID, TMap<FString, FString> OtherParams
 		return;
 	}
 
-	for (const TPair<FString, FString> EachParam : OtherParams)
+	FJsonObjectWrapper LogObject;
+	if (!LogObject.JsonObjectFromString(In_Log))
 	{
-		URL_Each_Log_Param* NewParam = CreateWidget<URL_Each_Log_Param>(PlayerController, ParamClass);
+		return;
+	}
+
+	for (TPair<FString, TSharedPtr<FJsonValue>> EachParam : LogObject.JsonObject->Values)
+	{
+		URL_Widget_Params* NewParam = CreateWidget<URL_Widget_Params>(PlayerController, ParamClass);
 
 		if (IsValid(NewParam))
 		{
 			this->ParamsBody->AddChild(NewParam);
-			NewParam->SetLogParams(EachParam.Key, EachParam.Value, RL_Level, Colors);
+			const FString ParamValue = EachParam.Value->AsString();
+			NewParam->SetLogParams(EachParam.Key, ParamValue, RL_Level, Colors);
 		}
 	}
 }
 
-FString URL_Each_Log::GetLogLevel()
+FString URL_Widget_Logs::GetLogLevel()
 {
 	return this->RL_Level_String;
 }
 
-void URL_Each_Log::SetLogLevel(ERuntimeLogLevels RL_Level)
+void URL_Widget_Logs::SetLogLevel(ERuntimeLogLevels RL_Level)
 {
 	const FString RawLogLevel = UEnum::GetValueAsString(RL_Level);
 	
