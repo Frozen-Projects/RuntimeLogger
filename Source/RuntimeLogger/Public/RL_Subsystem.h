@@ -77,17 +77,20 @@ public:
 	FDelegateRuntimeLoggerReset Delegate_Runtime_Logger_Reset;
 
 	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger")
-	virtual TMap<FString, FString> JsonToMap(FString JsonString);
+	virtual TMap<FString, FString> JsonStrToMap(FString JsonString);
+
+	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger")
+	virtual TMap<FString, FString> JsonObjToMap(FJsonObjectWrapper JsonObject);
 
 	/*
-	* This function is just a placeholder to demonstrate the use of __FUNCSIG__ Don't use it in production code.
-	* __FUNCSIG__ doesn't work on blueprints. So, you have to fill the function name manually.
+	* This function is just a placeholder to demonstrate the use of __FUNCTION__ Don't use it in production code.
+	* __FUNCTION__ doesn't work on blueprints. So, you have to fill the function name manually.
 	*/
 	virtual void SampleFunction()
 	{
 		TMap<FString, FString> LogData;
 		LogData.Add("PluginName", "Runtime Logger");
-		LogData.Add("FunctionName", FString(ANSI_TO_TCHAR(__FUNCSIG__)));
+		LogData.Add("FunctionName", FString(ANSI_TO_TCHAR(__FUNCTION__)));
 		LogData.Add("Details", "This is a sample function for logging purposes.");
 
 		const FString UUID = this->LogMessage(LogData, ERuntimeLogLevels::Warning);

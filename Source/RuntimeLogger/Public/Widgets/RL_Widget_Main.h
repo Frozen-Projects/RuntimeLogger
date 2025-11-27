@@ -24,8 +24,8 @@ private:
 
 	UFUNCTION()
 	virtual void OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeLogLevels Out_Level);
-	virtual void GenerateChildWidgets(FString Out_UUID, FString Out_Log, ERuntimeLogLevels Out_Level);
-	virtual void CreateFilters(ERuntimeLogLevels Out_Level);
+	virtual void GenerateChildWidgets(FString In_UUID, FString In_Log, ERuntimeLogLevels In_Level);
+	virtual void CreateFilters(ERuntimeLogLevels In_Level);
 
 	// It is for resetting old widgets without completely destroying whole log system.
 	UFUNCTION()

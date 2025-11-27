@@ -9,7 +9,6 @@
 void URuntimeLoggerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	//this->StartLogging();
 }
 
 void URuntimeLoggerSubsystem::Deinitialize()
@@ -217,29 +216,52 @@ FString URuntimeLoggerSubsystem::GetLog(const FString& UUID) const
 	}
 }
 
-TMap<FString, FString> URuntimeLoggerSubsystem::JsonToMap(FString JsonString)
+TMap<FString, FString> URuntimeLoggerSubsystem::JsonStrToMap(FString JsonString)
 {
+	TMap<FString, FString> LogData;
+
 	FJsonObjectWrapper RawJson;
 
 	if (!RawJson.JsonObjectFromString(JsonString))
 	{
-		// This is a helper function. So, we can use our logging system to log errors.
-
-		TMap<FString, FString> LogData;
 		LogData.Add("PluginName", "Runtime Logger");
-		LogData.Add("FunctionName", FString(ANSI_TO_TCHAR(__FUNCSIG__)));
+		LogData.Add("FunctionName", FString(ANSI_TO_TCHAR(__FUNCTION__)));
 		LogData.Add("Details", "There was a problem to convert json to a TMap !");
 
 		this->LogMessage(LogData, ERuntimeLogLevels::Critical);
+		return TMap<FString, FString>();
 	}
 
-	TMap<FString, FString> Map_Data;
 	for (TPair<FString, TSharedPtr<FJsonValue>> EachParam : RawJson.JsonObject->Values)
 	{
 		const FString Key = EachParam.Key;
 		const FString Value = EachParam.Value.IsValid() ? EachParam.Value->AsString() : FString();
-		Map_Data.Add(Key, Value);
+		LogData.Add(Key, Value);
 	}
 
-	return Map_Data;
+	return LogData;
+}
+
+TMap<FString, FString> URuntimeLoggerSubsystem::JsonObjToMap(FJsonObjectWrapper JsonObject)
+{
+	TMap<FString, FString> LogData;
+
+	if (JsonObject.JsonObject->Values.IsEmpty())
+	{
+		LogData.Add("PluginName", "Runtime Logger");
+		LogData.Add("FunctionName", FString(ANSI_TO_TCHAR(__FUNCTION__)));
+		LogData.Add("Details", "There was a problem to convert json to a TMap !");
+
+		this->LogMessage(LogData, ERuntimeLogLevels::Critical);
+		return TMap<FString, FString>();
+	}
+
+	for (TPair<FString, TSharedPtr<FJsonValue>> EachParam : JsonObject.JsonObject->Values)
+	{
+		const FString Key = EachParam.Key;
+		const FString Value = EachParam.Value.IsValid() ? EachParam.Value->AsString() : FString();
+		LogData.Add(Key, Value);
+	}
+
+	return LogData;
 }

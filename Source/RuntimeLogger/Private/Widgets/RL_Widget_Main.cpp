@@ -64,7 +64,7 @@ void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeL
 	this->CreateFilters(Out_Level);
 }
 
-void URL_Widget_Main::GenerateChildWidgets(FString Out_UUID, FString Out_Log, ERuntimeLogLevels Out_Level)
+void URL_Widget_Main::GenerateChildWidgets(FString In_UUID, FString In_Log, ERuntimeLogLevels In_Level)
 {
 	if (!IsValid(this->World))
 	{
@@ -126,22 +126,22 @@ void URL_Widget_Main::GenerateChildWidgets(FString Out_UUID, FString Out_Log, ER
 	ScrollBoxSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
 	ScrollBoxSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
 
-	TMap<FString, FString> Map_LogData = this->LoggerSubsystem->JsonToMap(Out_Log);
+	TMap<FString, FString> Map_LogData = this->LoggerSubsystem->JsonStrToMap(In_Log);
 
 	TArray<FColor> Log_Colors;
 	Log_Colors.Add(this->Color_Info);
 	Log_Colors.Add(this->Color_Warning);
 	Log_Colors.Add(this->Color_Error);
 
-	Each_Log->SetLogParams(Out_UUID, Map_LogData, Out_Level, Log_Param_Class, Log_Colors);
+	Each_Log->SetLogParams(In_UUID, Map_LogData, In_Level, Log_Param_Class, Log_Colors);
 
-	this->MAP_Widgets.Add(Out_UUID, Each_Log);
+	this->MAP_Widgets.Add(In_UUID, Each_Log);
 }
 
-void URL_Widget_Main::CreateFilters(ERuntimeLogLevels Out_Level)
+void URL_Widget_Main::CreateFilters(ERuntimeLogLevels In_Level)
 {
 	TArray<FString> String_Sections;
-	UEnum::GetValueAsString(Out_Level).ParseIntoArray(String_Sections, TEXT("::"));
+	UEnum::GetValueAsString(In_Level).ParseIntoArray(String_Sections, TEXT("::"));
 	const FString Criticality_String = String_Sections[1];
 
 	const int RetVal = this->Filter_Criticality->FindOptionIndex(Criticality_String);
