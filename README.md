@@ -4,20 +4,22 @@
 This plugin captures ``UE_LOG`` based entries at runtime to store and visualize them.
 
 ## Workflow / Tutorial
-- **Log Manager (Blueprint Exposed)**  
-  This is a `UGameInstanceSubsystem` (Runtime Logger Subsystem). It is unaffected by level changes because its singleton design. Also you can access it from anywhere.
+**Log Manager (Blueprint Exposed)**</br>
+This is a `UGameInstanceSubsystem` (Runtime Logger Subsystem). It is unaffected by level changes because its singleton design. Also you can access it from anywhere.
 
-- **Log Message (Blueprint Exposed)**
-After enabling this plugin, your ``FOutputDevice`` for ``UE_LOG`` will automatically change with our custom implementation. When you log something with ``LogTemp`` for example ``UE_LOG(LogTemp, Warning, TEXT("YOUR_AWASOME_LOG"))`` it will be captured by this plugin, additional to ``Output Window`` showing. So, you don't have to do something special. Other categories behave as usual.
+**Log Message (Blueprint Exposed)**</br>
+After enabling this plugin, your ``FOutputDevice`` for ``UE_LOG`` will automatically change with our custom implementation. When you log something with ``LogTemp``,</br>
+for example ``UE_LOG(LogTemp, Warning, TEXT("YOUR_AWASOME_LOG"))``</br>
+it will be captured by this plugin, additional to ``Output Window`` showing. So, you don't have to do something special. Other categories behave as usual.
 </br>
 </br>
-We also added a blueprint exposed function name ``Log Message``. Its message accepts ``FJsonObjectWrapper``. Because when your project groves, single sentenced logs won't be enough and you have add other sections like **"Plugin or Module Name", "Function Name", "Details" and etc."** In that case, ``JSON`` gives us more tidy logs. For example, if you are C++ developer, we suggest you to use ``__FUNCTION__`` parameter. (It won't work on blueprints.)
+We also added a blueprint exposed function name ``Log Message``. Its message accepts ``FJsonObjectWrapper``. Because when your project groves, single sentenced logs won't be enough and you have add other sections like ``Plugin or Module Name``, ``Function Name``, ``Details`` and etc. In that case, ``JSON`` gives us more tidy logs.
 </br>
-Sample Use Case: </br>
-```
+If you are C++ developer, we suggest you to use ``__FUNCTION__`` parameter. (It won't work on blueprints.) Sample Use Case: </br>
+````
 FJsonObjectWrapper Log_Json;
 Log_Json.JsonObject->SetStringField("FunctionName", FString(ANSI_TO_TCHAR(__FUNCTION__)));
-```
+````
 </br>
 </br>
 When your log captured, our system will automatically add an ``UE5 FGUID based UUID``, ``FDateTime::Now() based LogTime`` and its ``Verbosity`` level to that JSON.
