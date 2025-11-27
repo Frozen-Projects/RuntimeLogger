@@ -1,4 +1,5 @@
 #include "Subsystem/RL_Device.h"
+#include "Subsystem/RL_Subsystem.h"
 
 void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type Verbosity, const FName& Category)
 {
@@ -93,6 +94,10 @@ void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type V
         }
 
         const FString UUID = FGuid::NewGuid().ToString();
-        LoggerSubsystem->RecordLog(UUID, MessageJson);
+
+        if (LoggerSubsystem->RecordLog(UUID, MessageJson) == -1)
+        {
+            UE_LOG(LogRL, Warning, TEXT("Failed to record log message. %s"), Message);
+        }
 	});
 }

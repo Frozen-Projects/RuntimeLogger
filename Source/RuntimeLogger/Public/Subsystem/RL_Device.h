@@ -1,5 +1,5 @@
 #pragma once
-#include "Subsystem/RL_Subsystem.h"
+#include "CoreMinimal.h"
 
 class FRuntimeLoggerOutput : public FOutputDevice
 {
