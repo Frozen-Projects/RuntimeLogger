@@ -8,8 +8,7 @@ This plugin captures ``UE_LOG`` based entries at runtime to store and visualize 
 This is a `UGameInstanceSubsystem` (Runtime Logger Subsystem). It is unaffected by level changes because its singleton design. Also you can access it from anywhere.
 
 **Log Message (Blueprint Exposed)**<br>
-After enabling this plugin, your ``FOutputDevice`` for ``UE_LOG`` will automatically change with our custom implementation.<br>
-When you log something with ``LogTemp``, for example:<br>
+After enabling this plugin, your ``FOutputDevice`` for ``UE_LOG`` will automatically change with our custom implementation. When you log something with ``LogTemp``, for example:<br>
 ````
 UE_LOG(LogTemp, Warning, TEXT("YOUR_AWASOME_LOG"))
 ````
