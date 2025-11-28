@@ -35,7 +35,7 @@ void URuntimeLoggerSubsystem::Deinitialize()
 void URuntimeLoggerSubsystem::OpenLogFile()
 {
 	const FString ProjectName = FApp::GetProjectName();
-	FString SaveDir = UKismetSystemLibrary::GetProjectSavedDirectory() + "/" + ProjectName + "_RuntimeLogger_" + FDateTime::Now().ToString() + ".log";
+	FString SaveDir = UKismetSystemLibrary::GetProjectSavedDirectory() + "/" + ProjectName + "_RL_" + FDateTime::Now().ToString() + ".log";
 	FPaths::MakePlatformFilename(SaveDir);
 
 	if (this->LogFileBuffer.open(TCHAR_TO_UTF8(*SaveDir), std::ios::in | std::ios::out | std::ios::app | std::ios::binary))
