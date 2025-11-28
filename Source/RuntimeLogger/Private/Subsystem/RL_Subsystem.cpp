@@ -38,12 +38,10 @@ void URuntimeLoggerSubsystem::OpenLogFile()
 	FString SaveDir = UKismetSystemLibrary::GetProjectSavedDirectory() + "/" + ProjectName + "_RuntimeLogger_" + FDateTime::Now().ToString() + ".log";
 	FPaths::MakePlatformFilename(SaveDir);
 
-	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-	this->LogFileHandle.Reset(PlatformFile.OpenWrite(*SaveDir, true, true));
-
-	if (this->LogFileHandle.IsValid())
+	if (this->LogFileBuffer.open(TCHAR_TO_UTF8(*SaveDir), std::ios::in | std::ios::out | std::ios::app | std::ios::binary))
 	{
 		this->LogFilePath = SaveDir;
+		this->LogFileStream.rdbuf(&this->LogFileBuffer);
 	}
 
 	else
@@ -55,9 +53,10 @@ void URuntimeLoggerSubsystem::OpenLogFile()
 
 void URuntimeLoggerSubsystem::CleanupLogs()
 {
-	if (this->LogFileHandle.IsValid())
+	if (this->LogFileBuffer.is_open())
 	{
-		this->LogFileHandle->Flush();
+		this->LogFileStream.flush();
+		this->LogFileBuffer.close();
 	}
 
 	this->LogDb.Empty();
@@ -117,12 +116,12 @@ int32 URuntimeLoggerSubsystem::RecordLog(const FString& In_UUID, FJsonObjectWrap
 
 	this->Delegate_Runtime_Logger.Broadcast(In_UUID, MessageString, VerbosityLevel);
 
-	if (!this->LogFileHandle.IsValid())
+	if (!this->LogFileBuffer.is_open())
 	{
 		this->OpenLogFile();
 	}
 
-	if (this->LogFileHandle.IsValid())
+	if (this->LogFileBuffer.is_open())
 	{
 		FJsonObjectWrapper FileJson = Message;
 		FileJson.JsonObject->SetStringField(TEXT("UUID"), In_UUID);
@@ -132,7 +131,8 @@ int32 URuntimeLoggerSubsystem::RecordLog(const FString& In_UUID, FJsonObjectWrap
 		const FString FileEntry = FileString + "\n";
 
 		FTCHARToUTF8 Utf8(*FileEntry);
-		this->LogFileHandle->Write(reinterpret_cast<const uint8*>(Utf8.Get()), Utf8.Length());
+		this->LogFileStream.write(Utf8.Get(), Utf8.Length());
+		this->LogFileStream.flush();
 
 		return 1;
 	}
@@ -161,7 +161,20 @@ FString URuntimeLoggerSubsystem::GetLogFilePath() const
 	return TempPath;
 }
 
-bool URuntimeLoggerSubsystem::LogFileToSingleJson(FJsonObjectWrapper& Out_Json, FString LogFile)
+FJsonObjectWrapper URuntimeLoggerSubsystem::GetLog(const FString& UUID)
+{
+	if (this->LogDb.Contains(UUID))
+	{
+		return *this->LogDb.Find(UUID);
+	}
+	
+	else
+	{
+		return FJsonObjectWrapper();
+	}
+}
+
+bool URuntimeLoggerSubsystem::LogFileToJson(FJsonObjectWrapper& Out_Json, FString LogFile)
 {
 	if (LogFile.IsEmpty())
 	{
@@ -175,22 +188,29 @@ bool URuntimeLoggerSubsystem::LogFileToSingleJson(FJsonObjectWrapper& Out_Json, 
 		return false;
 	}
 
-	FString FileString;
-	if (!FFileHelper::LoadFileToString(FileString, *LogFile))
+	const std::string PathUtf8 = TCHAR_TO_UTF8(*LogFile);
+
+	std::ifstream in(PathUtf8, std::ios::in | std::ios::binary);
+	if (!in.is_open())
 	{
 		return false;
 	}
 
-	TArray<FString> LogEntries;
-	FileString.ParseIntoArray(LogEntries, TEXT("\n"), true);
-
+	std::string Line;
 	FJsonObjectWrapper ResultJson = FJsonObjectWrapper();
 	TArray<TSharedPtr<FJsonValue>> Details;
 
-	for (const FString& Entry : LogEntries)
+	while (std::getline(in, Line))
 	{
+		if (!Line.empty() && Line.back() == '\n')
+		{
+			Line.pop_back();
+		}
+
+		const FString LineFString = UTF8_TO_TCHAR(Line.c_str());
+
 		FJsonObjectWrapper LogEntry;
-		if (LogEntry.JsonObjectFromString(Entry))
+		if (LogEntry.JsonObjectFromString(LineFString))
 		{
 			Details.Add(MakeShared<FJsonValueObject>(LogEntry.JsonObject));
 		}
@@ -202,15 +222,53 @@ bool URuntimeLoggerSubsystem::LogFileToSingleJson(FJsonObjectWrapper& Out_Json, 
 	return true;
 }
 
-FJsonObjectWrapper URuntimeLoggerSubsystem::GetLog(const FString& UUID)
+bool URuntimeLoggerSubsystem::MemoryToJson(FJsonObjectWrapper& Out_Json)
 {
-	if (this->LogDb.Contains(UUID))
+	if (this->LogDb.IsEmpty())
 	{
-		return *this->LogDb.Find(UUID);
+		return false;
 	}
+
+	FJsonObjectWrapper ResultJson = FJsonObjectWrapper();
+	TArray<TSharedPtr<FJsonValue>> Details;
 	
-	else
+	for (const TPair<FString, FJsonObjectWrapper>& Pair : this->LogDb)
 	{
-		return FJsonObjectWrapper();
+		FJsonObjectWrapper LogEntry = Pair.Value;
+		LogEntry.JsonObject->SetStringField(TEXT("UUID"), Pair.Key);
+		Details.Add(MakeShared<FJsonValueObject>(LogEntry.JsonObject));
 	}
+
+	ResultJson.JsonObject->SetArrayField(TEXT("root"), Details);
+	Out_Json = ResultJson;
+
+	return false;
+}
+
+void URuntimeLoggerSubsystem::LogFileToJson_BP(FDelegateRLExport Delegate_Export, FString In_File)
+{
+	AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, [this, Delegate_Export, In_File]()
+	{
+		FJsonObjectWrapper ResultJson;
+		bool bIsSuccessfull = this->LogFileToJson(ResultJson, In_File);
+
+		AsyncTask(ENamedThreads::GameThread, [Delegate_Export, bIsSuccessfull, ResultJson]()
+		{
+			Delegate_Export.ExecuteIfBound(bIsSuccessfull, ResultJson);
+		});
+	});
+}
+
+void URuntimeLoggerSubsystem::MemoryToJson_BP(FDelegateRLExport Delegate_Export)
+{
+	AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, [this, Delegate_Export]()
+	{
+		FJsonObjectWrapper ResultJson;
+		bool bIsSuccessfull = this->MemoryToJson(ResultJson);
+
+		AsyncTask(ENamedThreads::GameThread, [Delegate_Export, bIsSuccessfull, ResultJson]()
+		{
+			Delegate_Export.ExecuteIfBound(bIsSuccessfull, ResultJson);
+		});
+	});
 }
