@@ -68,9 +68,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger")
 	virtual FJsonObjectWrapper GetLog(const FString& UUID);
 
+	/*
+	* root component name is "root".
+	*/
 	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger")
 	virtual void LogFileToJson_BP(FDelegateRLExport Delegate_Export, FString In_File);
 
+	/*
+	* root component name is "root".
+	*/
 	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger")
 	virtual void MemoryToJson_BP(FDelegateRLExport Delegate_Export);
 
