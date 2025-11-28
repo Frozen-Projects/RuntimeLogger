@@ -242,7 +242,7 @@ bool URuntimeLoggerSubsystem::MemoryToJson(FJsonObjectWrapper& Out_Json)
 	ResultJson.JsonObject->SetArrayField(TEXT("root"), Details);
 	Out_Json = ResultJson;
 
-	return false;
+	return true;
 }
 
 void URuntimeLoggerSubsystem::LogFileToJson_BP(FDelegateRLExport Delegate_Export, FString In_File)
@@ -250,7 +250,7 @@ void URuntimeLoggerSubsystem::LogFileToJson_BP(FDelegateRLExport Delegate_Export
 	AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, [this, Delegate_Export, In_File]()
 	{
 		FJsonObjectWrapper ResultJson;
-		bool bIsSuccessfull = this->LogFileToJson(ResultJson, In_File);
+		const bool bIsSuccessfull = this->LogFileToJson(ResultJson, In_File);
 
 		AsyncTask(ENamedThreads::GameThread, [Delegate_Export, bIsSuccessfull, ResultJson]()
 		{
@@ -264,7 +264,7 @@ void URuntimeLoggerSubsystem::MemoryToJson_BP(FDelegateRLExport Delegate_Export)
 	AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, [this, Delegate_Export]()
 	{
 		FJsonObjectWrapper ResultJson;
-		bool bIsSuccessfull = this->MemoryToJson(ResultJson);
+		const bool bIsSuccessfull = this->MemoryToJson(ResultJson);
 
 		AsyncTask(ENamedThreads::GameThread, [Delegate_Export, bIsSuccessfull, ResultJson]()
 		{
