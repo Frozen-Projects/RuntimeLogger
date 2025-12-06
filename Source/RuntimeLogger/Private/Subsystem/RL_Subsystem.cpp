@@ -1,8 +1,5 @@
 #include "Subsystem/RL_Subsystem.h"
 
-#include "Misc/App.h"
-#include "Kismet/KismetSystemLibrary.h"
-
 DEFINE_LOG_CATEGORY(LogRL);
 
 void URuntimeLoggerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -174,54 +171,6 @@ FJsonObjectWrapper URuntimeLoggerSubsystem::GetLog(const FString& UUID)
 	}
 }
 
-bool URuntimeLoggerSubsystem::LogFileToJson(FJsonObjectWrapper& Out_Json, FString LogFile)
-{
-	if (LogFile.IsEmpty())
-	{
-		return false;
-	}
-
-	FPaths::NormalizeFilename(LogFile);
-
-	if (!FPaths::FileExists(LogFile))
-	{
-		return false;
-	}
-
-	const std::string PathUtf8 = TCHAR_TO_UTF8(*LogFile);
-
-	std::ifstream in(PathUtf8, std::ios::in | std::ios::binary);
-	if (!in.is_open())
-	{
-		return false;
-	}
-
-	std::string Line;
-	FJsonObjectWrapper ResultJson = FJsonObjectWrapper();
-	TArray<TSharedPtr<FJsonValue>> Details;
-
-	while (std::getline(in, Line))
-	{
-		if (!Line.empty() && Line.back() == '\n')
-		{
-			Line.pop_back();
-		}
-
-		const FString LineFString = UTF8_TO_TCHAR(Line.c_str());
-
-		FJsonObjectWrapper LogEntry;
-		if (LogEntry.JsonObjectFromString(LineFString))
-		{
-			Details.Add(MakeShared<FJsonValueObject>(LogEntry.JsonObject));
-		}
-	}
-
-	ResultJson.JsonObject->SetArrayField(TEXT("root"), Details);
-	Out_Json = ResultJson;
-
-	return true;
-}
-
 bool URuntimeLoggerSubsystem::MemoryToJson(FJsonObjectWrapper& Out_Json)
 {
 	if (this->LogDb.IsEmpty())
@@ -243,20 +192,6 @@ bool URuntimeLoggerSubsystem::MemoryToJson(FJsonObjectWrapper& Out_Json)
 	Out_Json = ResultJson;
 
 	return true;
-}
-
-void URuntimeLoggerSubsystem::LogFileToJson_BP(FDelegateRLExport Delegate_Export, FString In_File)
-{
-	AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, [this, Delegate_Export, In_File]()
-	{
-		FJsonObjectWrapper ResultJson;
-		const bool bIsSuccessfull = this->LogFileToJson(ResultJson, In_File);
-
-		AsyncTask(ENamedThreads::GameThread, [Delegate_Export, bIsSuccessfull, ResultJson]()
-		{
-			Delegate_Export.ExecuteIfBound(bIsSuccessfull, ResultJson);
-		});
-	});
 }
 
 void URuntimeLoggerSubsystem::MemoryToJson_BP(FDelegateRLExport Delegate_Export)

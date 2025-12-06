@@ -8,16 +8,19 @@ void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type V
         return;
     }
 
-    AsyncTask(ENamedThreads::GameThread, [Message, Verbosity]()
+	const FString FunctionName = FString::Printf(TEXT("%s::%s"), TEXT("RuntimeLogger"), ANSI_TO_TCHAR(__FUNCTION__));
+
+    AsyncTask(ENamedThreads::GameThread, [Message, Verbosity, FunctionName]()
     {
         FJsonObjectWrapper MessageJson;
         if (!MessageJson.JsonObjectFromString(Message))
         {
-            return;
+			MessageJson.JsonObject->SetStringField(TEXT("Message"), FString(Message));
         }
 
         if (!GEngine)
         {
+            UE_LOG(LogRL, Warning, TEXT("%s : GEngine is not valid. Can't visualize the log message : %s"), *FunctionName, Message);
             return;
         }
 
@@ -25,6 +28,7 @@ void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type V
 
         if (!CurrentWorld)
         {
+			UE_LOG(LogRL, Warning, TEXT("%s : CurrentWorld is not valid. Can't visualize the log message : %s"), *FunctionName, Message);
             return;
 		}
         
@@ -32,6 +36,7 @@ void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type V
 
         if (!LoggerSubsystem)
         {
+			UE_LOG(LogRL, Warning, TEXT("%s : LoggerSubsystem is not valid. Can't visualize the log message : %s"), *FunctionName, Message);
             return;
         }
 
@@ -97,7 +102,7 @@ void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type V
 
         if (LoggerSubsystem->RecordLog(UUID, MessageJson) == -1)
         {
-            UE_LOG(LogRL, Warning, TEXT("Failed to record log message. %s"), Message);
+			UE_LOG(LogRL, Warning, TEXT("%s : Failed to record the log message : %s"), *FunctionName, Message);
         }
 	});
 }
