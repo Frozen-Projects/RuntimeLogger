@@ -98,7 +98,7 @@ void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type V
                 break;
         }
 
-        const FString UUID = FGuid::NewGuid().ToString();
+		const FString UUID = URL_Static_Functions::GenerateUUIDv7();
 
         if (LoggerSubsystem->RecordLog(UUID, MessageJson) == -1)
         {

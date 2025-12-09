@@ -115,3 +115,19 @@ void URL_Static_Functions::LogJson(int32 InLogLevel, FJsonObjectWrapper In_Log)
             break;
     }
 }
+
+FString URL_Static_Functions::GenerateUUIDv7()
+{
+	FRL_UUIDv7 UUID;
+	return UTF8_TO_TCHAR(UUID.generateString().c_str());
+}
+
+TArray<uint8> URL_Static_Functions::GenerateUUIDv7Bytes()
+{
+	FRL_UUIDv7 UUID;
+	
+	std::array<uint8_t, 16> bytes = UUID.generateBytes();
+	TArray<uint8> result;
+	result.Append(bytes.data(), bytes.size());
+	return result;
+}

@@ -3,6 +3,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 
 #include "RL_Includes.h"
+#include "RL_UUIDv7.h"
 
 #include "RL_BPLib.generated.h"
 
@@ -36,5 +37,11 @@ class URL_Static_Functions : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Log Json", Keywords = "log, json"), Category = "Frozen Forest|Runtime Logger")
 	static RUNTIMELOGGER_API void LogJson(int32 InLogLevel, FJsonObjectWrapper In_Log);
+
+	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger|UUIDv7")
+	static RUNTIMELOGGER_API FString GenerateUUIDv7();
+
+	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger|UUIDv7")
+	static RUNTIMELOGGER_API TArray<uint8> GenerateUUIDv7Bytes();
 
 };
