@@ -1,6 +1,26 @@
 #include "Subsystem/RL_Device.h"
 #include "Subsystem/RL_Subsystem.h"
 
+void FRuntimeLoggerOutput::InitSubsystem(URuntimeLoggerSubsystem* In_LoggerSubsystem)
+{
+	this->LoggerSubsystem = In_LoggerSubsystem;
+}
+
+bool FRuntimeLoggerOutput::CanBeUsedOnAnyThread() const
+{
+    return true;
+}
+
+bool FRuntimeLoggerOutput::CanBeUsedOnMultipleThreads() const
+{
+    return true;
+}
+
+bool FRuntimeLoggerOutput::CanBeUsedOnPanicThread() const
+{
+    return true;
+}
+
 void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type Verbosity, const FName& Category)
 {
     if (Category != FName(TEXT("LogTemp")))
@@ -10,7 +30,7 @@ void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type V
 
 	const FString FunctionName = FString::Printf(TEXT("%s::%s"), TEXT("RuntimeLogger"), ANSI_TO_TCHAR(__FUNCTION__));
 
-    AsyncTask(ENamedThreads::GameThread, [Message, Verbosity, FunctionName]()
+    AsyncTask(ENamedThreads::GameThread, [this, Message, Verbosity, FunctionName]()
     {
         FJsonObjectWrapper MessageJson;
         if (!MessageJson.JsonObjectFromString(Message))
@@ -18,23 +38,7 @@ void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type V
 			MessageJson.JsonObject->SetStringField(TEXT("Message"), FString(Message));
         }
 
-        if (!GEngine)
-        {
-            UE_LOG(LogRL, Warning, TEXT("%s : GEngine is not valid. Can't visualize the log message : %s"), *FunctionName, Message);
-            return;
-        }
-
-		UWorld* CurrentWorld = GEngine->GetCurrentPlayWorld();
-
-        if (!CurrentWorld)
-        {
-			UE_LOG(LogRL, Warning, TEXT("%s : CurrentWorld is not valid. Can't visualize the log message : %s"), *FunctionName, Message);
-            return;
-		}
-        
-        URuntimeLoggerSubsystem* LoggerSubsystem = CurrentWorld->GetGameInstance()->GetSubsystem<URuntimeLoggerSubsystem>();
-
-        if (!LoggerSubsystem)
+        if (!this->LoggerSubsystem)
         {
 			UE_LOG(LogRL, Warning, TEXT("%s : LoggerSubsystem is not valid. Can't visualize the log message : %s"), *FunctionName, Message);
             return;

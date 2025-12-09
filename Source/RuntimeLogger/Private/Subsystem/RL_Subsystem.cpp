@@ -8,11 +8,12 @@ void URuntimeLoggerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	this->OpenLogFile();
 
-	LogCaptureDevice = MakeUnique<FRuntimeLoggerOutput>();
+	this->LogCaptureDevice = MakeUnique<FRuntimeLoggerOutput>();
+	this->LogCaptureDevice->InitSubsystem(this);
 
 	if (GLog)
 	{
-		GLog->AddOutputDevice(LogCaptureDevice.Get());
+		GLog->AddOutputDevice(this->LogCaptureDevice.Get());
 	}
 }
 
