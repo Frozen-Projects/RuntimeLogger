@@ -36,7 +36,8 @@ void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type V
             MessageJson.JsonObject->SetStringField(TEXT("Message"), Message);
         }
 
-        const FString LogTime = FDateTime::Now().ToString();
+        const FString LogTime = FDateTime::Now().ToIso8601();
+       
         MessageJson.JsonObject->SetStringField(TEXT("LogTime"), LogTime);
 
         switch (Verbosity)
