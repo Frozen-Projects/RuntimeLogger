@@ -1,21 +1,23 @@
 # RuntimeLogger
 
 # Description
-This plugin captures ``UE_LOG`` based entries at runtime to store and visualize them.
+This plugin captures ``UE_LOG`` and ``blueprint Print String (if logging enabled)`` based entries at runtime to store and visualize them.
 
 # Workflow / Tutorial
 
 ## Log Manager
-This is a `UGameInstanceSubsystem` (Runtime Logger Subsystem). It is unaffected by level changes because its singleton design. Also you can access it from anywhere.
+``Runtime Logger Subsystem (UGameInstanceSubsystem)`` is our log manager. It is a singleton object and binded to game instance. So, level changes won't affect it.
 
 ## Log Message
-After enabling this plugin, your ``FOutputDevice`` for ``UE_LOG`` will automatically change with our custom implementation. When you log something with ``LogTemp``, for example:<br>
+After enabling this plugin, default ``FOutputDevice`` for ``UE_LOG`` will automatically change with our custom implementation. When you log something with ``PrintString`` or ``UELOG(LogTemp,...)``, for example:<br>
 ````
 UE_LOG(LogTemp, Warning, TEXT("YOUR_AWASOME_LOG"))
 ````
-it will be captured by this plugin, additional to appearing on ``Output Window``.<br>
+plugin will captures it, additional to appearing on ``Output Window``.<br>
 
-So, you don't have to do something special. Other categories behave as usual.<br>
+To use it with ``PrintString``, you have to enable "Log" option. Because it uses an internal ``UE_LOG(LogBlueprintUserMessages)`` that can be captured by this plugin.
+
+So, you don't have to do something special. Other ``Log Categories`` than ``LogTemp``and ``LogBlueprintUserMessages`` won't be captured. Because engine's itself logs every thing internally and we want to capture only developer's logs.<br>
 
 We also added a blueprint exposed function that named ``Log Message``. Its message accepts ``FJsonObjectWrapper``. Because when your project groves, single sentenced logs won't be enough and you have to add other informations like ``Plugin or Module Name``, ``Function Name``, ``Details`` and etc. In that case, ``JSON`` gives us more tidy logs.<br>
 If you are C++ developer **(It won't work on blueprints.)** , we suggest you to use ``__FUNCTION__`` parameter. Because it automatically adds function and its owner class' name. It is a compiler feature from ``MSVC``. Sample Use Case:<br>
@@ -36,8 +38,8 @@ You have three options.<br>
 - **Delegate Method:** There is a delegate for captured logs. You can use them for additional purposes. For example your own widget system, mail sender, API connections and etc.
 
 ## Platform Support
-No platform-specific code is used, so it should work on any platform.  
-Tested only on **Windows** and **Android** — no official support for others, especially editor-side.
+We haven't used any platform specific code. So it should work on any platform. But we tested it only on **Windows** and **Android** platforms. We don't have other OS.</br>
+It works on ``editor`` and ``packaged`` **runtime** but doesn't work on ``editor`` only side.
 
 ## Engine Support
 No UE4 or older versions are supported.  
