@@ -11,19 +11,10 @@ bool FRuntimeLoggerOutput::CanBeUsedOnAnyThread() const
     return true;
 }
 
-bool FRuntimeLoggerOutput::CanBeUsedOnMultipleThreads() const
-{
-    return true;
-}
-
-bool FRuntimeLoggerOutput::CanBeUsedOnPanicThread() const
-{
-    return true;
-}
-
 void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type Verbosity, const FName& Category)
 {
-    if (Category != FName(TEXT("LogTemp")))
+	// We want both LogTemp and PrintString messages.
+    if (Category != FName(TEXT("LogTemp")) && Category != FName(TEXT("LogBlueprintUserMessages")))
     {
         return;
     }
@@ -32,16 +23,17 @@ void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type V
 
     AsyncTask(ENamedThreads::GameThread, [this, Message, Verbosity, FunctionName]()
     {
-        FJsonObjectWrapper MessageJson;
-        if (!MessageJson.JsonObjectFromString(Message))
-        {
-			MessageJson.JsonObject->SetStringField(TEXT("Message"), FString(Message));
-        }
-
         if (!this->LoggerSubsystem)
         {
-			UE_LOG(LogRL, Warning, TEXT("%s : LoggerSubsystem is not valid. Can't visualize the log message : %s"), *FunctionName, Message);
+            UE_LOG(LogRL, Warning, TEXT("%s : LoggerSubsystem is not valid. Can't visualize the log message : %s"), *FunctionName, Message);
             return;
+        }
+
+        FJsonObjectWrapper MessageJson;
+
+        if (!MessageJson.JsonObjectFromString(Message))
+        {
+            MessageJson.JsonObject->SetStringField(TEXT("Message"), Message);
         }
 
         const FString LogTime = FDateTime::Now().ToString();

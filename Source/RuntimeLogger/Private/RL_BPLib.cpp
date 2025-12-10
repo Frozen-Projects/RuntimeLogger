@@ -97,21 +97,21 @@ void URL_Static_Functions::LogJson(int32 InLogLevel, FJsonObjectWrapper In_Log)
     {
         case 0:
 
-            UE_LOG(LogTemp, Display, TEXT("%s"), *FString(LogString));
+            UE_LOG(LogTemp, Display, TEXT("%s"), *LogString);
             return;
 
         case 1:
 
-            UE_LOG(LogTemp, Warning, TEXT("%s"), *FString(LogString));
+            UE_LOG(LogTemp, Warning, TEXT("%s"), *LogString);
             return;
 
         case 2:
 
-            UE_LOG(LogTemp, Error, TEXT("%s"), *FString(LogString));
+            UE_LOG(LogTemp, Error, TEXT("%s"), *LogString);
             return;
 
         default:
-            UE_LOG(LogTemp, Warning, TEXT("%s"), *FString(LogString));
+            UE_LOG(LogTemp, Warning, TEXT("%s"), *LogString);
             break;
     }
 }
