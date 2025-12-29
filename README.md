@@ -4,17 +4,25 @@
 This plugin captures ``UE_LOG(LogTemp)`` and ``Blueprint Print String (if logging enabled)`` based logs at runtime to store and visualize them. It won't work on editor only logs.
 
 ## STRUCTURE
-1. Runtime Logger Engine Subsystem: It is responsible for log management and automatically attaches ``FOutputDevice`` to catch logs that come from ``UE_LOG(LogTemp)`` and/or ``Print String`` at runtime.
+**Runtime Logger Engine Subsystem:** It is responsible for log management and automatically attaches ``FOutputDevice`` to catch logs that come from ``UE_LOG(LogTemp)`` and/or ``Print String`` at runtime.
 
 ### Why UEngineSubsystem ?
 Because ``Deinitialize()`` and ``BeginDestroy (inherited from UObject)`` functions of ``UGameInstanceSubsystem`` run ``before actual shutdown`` and prematurely clean log file buffer. If project has a log that comes from ``EndPlay`` event, system re-open that buffer again and this causes multiple log files.</br></br>
 
-``UEngineSubsystem`` has two benefits.
+**``UEngineSubsystem`` has two benefits.**
 1. Level changes can't affect it.
 2. While you are in editor, each ``play``session doesn't open a new file but use existing one. System cleans log file only when you close the engine or your packaged project.
 
 ## TUTORIAL
-* You don't have to do something special. Just enable plugin from your editor's ``Plugins`` window and that's all. System automatically changes your default ``FOutputDevice`` with our custom one and starts to catch ``UE_LOG(LogTemp, Warning, TEXT("YOUR_AWASOME_LOG"))`` and ``Blueprint Print String (if logging enabled, because it uses an internal UE_LOG(LogBlueprintUserMessages))`` based logs additional to appearing on ``Output Window``.
+* You don't have to do something special. Just enable plugin from your editor's ``Plugins`` window and that's all. System automatically changes your default ``FOutputDevice`` with our custom one and starts to catch
+```
+UE_LOG(LogTemp, Warning, TEXT("YOUR_AWASOME_LOG"))
+```
+and
+```
+Blueprint Print String (if logging enabled, because it uses an internal UE_LOG(LogBlueprintUserMessages))
+```
+based logs additional to appearing on ``Output Window``.
 * How can you visualize them depends on your imagination. You can look at plugin's ``Content`` folder for a sample.
 * To access log database and log management functions, just get RuntimeLogger Engine Subystem from blueprints and call ``ResetLogs``, ``GetLogDb``, ``GetLogFilePath``, ``GetLog``, ``MemoryToJson_BP``
 * There are two UPROPERTYs that named as ``bAllowSameMessage`` and ``SameMessageInterval``. If disable ``bAllowSameMessage (default disabled)``, it won't record same message (message and verbosity should be the same) that comes within specified interval.
