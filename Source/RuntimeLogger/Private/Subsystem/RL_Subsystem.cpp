@@ -2,16 +2,14 @@
 
 DEFINE_LOG_CATEGORY(LogRL);
 
-#pragma region GameInstance
-
-void URuntimeLoggerGameInstance::Init()
+void URuntimeLoggerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	Super::Init();
+	Super::Initialize(Collection);
 
 	this->OpenLogFile();
 
 	this->LogCaptureDevice = MakeUnique<FRuntimeLoggerOutput>();
-	this->LogCaptureDevice->Init_GI(this);
+	this->LogCaptureDevice->InitSubsystem(this);
 
 	if (GLog)
 	{
@@ -19,22 +17,52 @@ void URuntimeLoggerGameInstance::Init()
 	}
 }
 
-void URuntimeLoggerGameInstance::Shutdown()
+void URuntimeLoggerSubsystem::Deinitialize()
 {
 	if (GLog && this->LogCaptureDevice)
 	{
 		GLog->RemoveOutputDevice(this->LogCaptureDevice.Get());
 		this->LogCaptureDevice.Reset();
 	}
-}
 
-void URuntimeLoggerGameInstance::BeginDestroy()
-{
 	this->CleanupLogs();
-	Super::BeginDestroy();
+
+	Super::Deinitialize();
 }
 
-ERuntimeLogLevels URuntimeLoggerGameInstance::GetLogLevelFromString(const FString& LogLevelString)
+#pragma region Internals
+
+void URuntimeLoggerSubsystem::OpenLogFile()
+{
+	const FString ProjectName = FApp::GetProjectName();
+	FString SaveDir = UKismetSystemLibrary::GetProjectSavedDirectory() + "/" + ProjectName + "_RL_" + FDateTime::Now().ToString() + ".log";
+	FPaths::MakePlatformFilename(SaveDir);
+
+	if (this->LogFileBuffer.open(TCHAR_TO_UTF8(*SaveDir), std::ios::in | std::ios::out | std::ios::app | std::ios::binary))
+	{
+		this->LogFilePath = SaveDir;
+		this->LogFileStream.rdbuf(&this->LogFileBuffer);
+	}
+
+	else
+	{
+		// We used custom log name because if there is an issue opening the file, LogTemp will cause recursive calls infinitely.
+		UE_LOG(LogRL, Error, TEXT("Failed to open log file at path: %s"), *SaveDir);
+	}
+}
+
+void URuntimeLoggerSubsystem::CleanupLogs()
+{
+	if (this->LogFileBuffer.is_open())
+	{
+		this->LogFileStream.flush();
+		this->LogFileBuffer.close();
+	}
+
+	this->LogDb.Empty();
+}
+
+ERuntimeLogLevels URuntimeLoggerSubsystem::GetLogLevelFromString(const FString& LogLevelString)
 {
 	if (LogLevelString == "Display" || LogLevelString == "Log")
 	{
@@ -57,124 +85,7 @@ ERuntimeLogLevels URuntimeLoggerGameInstance::GetLogLevelFromString(const FStrin
 	}
 }
 
-void URuntimeLoggerGameInstance::OpenLogFile()
-{
-	const FString ProjectName = FApp::GetProjectName();
-	FString SaveDir = UKismetSystemLibrary::GetProjectSavedDirectory() + "/" + ProjectName + "_RL_" + FDateTime::Now().ToString() + ".log";
-	FPaths::MakePlatformFilename(SaveDir);
-
-	if (this->LogFileBuffer.open(TCHAR_TO_UTF8(*SaveDir), std::ios::in | std::ios::out | std::ios::app | std::ios::binary))
-	{
-		this->LogFilePath = SaveDir;
-		this->LogFileStream.rdbuf(&this->LogFileBuffer);
-	}
-
-	else
-	{
-		// We used custom log name bypass capture system and avoid recursive calls infinitely.
-		UE_LOG(LogRL, Error, TEXT("Failed to open log file at path: %s"), *SaveDir);
-	}
-}
-
-int32 URuntimeLoggerGameInstance::RecordLog(const FString& In_UUID, FJsonObjectWrapper Message)
-{
-	if (In_UUID.IsEmpty())
-	{
-		return -1;
-	}
-
-	this->LogDb.Add(In_UUID, Message);
-
-	FString MessageString;
-
-	if (!Message.JsonObjectToString(MessageString))
-	{
-		return -1;
-	}
-
-	if (MessageString.IsEmpty())
-	{
-		return -1;
-	}
-
-	FString LevelString;
-	ERuntimeLogLevels VerbosityLevel = ERuntimeLogLevels::Info;
-
-	if (Message.JsonObject->TryGetStringField(TEXT("Verbosity"), LevelString))
-	{
-		VerbosityLevel = URuntimeLoggerGameInstance::GetLogLevelFromString(LevelString);
-	}
-
-	this->Delegate_Runtime_Logger.Broadcast(In_UUID, MessageString, VerbosityLevel);
-
-	if (!this->LogFileBuffer.is_open())
-	{
-		this->OpenLogFile();
-	}
-
-	if (this->LogFileBuffer.is_open())
-	{
-		FJsonObjectWrapper FileJson = Message;
-		FileJson.JsonObject->SetStringField(TEXT("UUID"), In_UUID);
-
-		FString FileString;
-		FileJson.JsonObjectToString(FileString);
-		const FString FileEntry = FileString + "\n";
-
-		FTCHARToUTF8 Utf8(*FileEntry);
-		this->LogFileStream.write(Utf8.Get(), Utf8.Length());
-		this->LogFileStream.flush();
-
-		return 1;
-	}
-
-	else
-	{
-		return 0;
-	}
-}
-
-void URuntimeLoggerGameInstance::CleanupLogs()
-{
-	if (this->LogFileBuffer.is_open())
-	{
-		this->LogFileStream.flush();
-		this->LogFileBuffer.close();
-	}
-
-	this->LogDb.Empty();
-}
-
-void URuntimeLoggerGameInstance::ResetLogs()
-{
-	this->CleanupLogs();
-	this->OpenLogFile();
-}
-
-FString URuntimeLoggerGameInstance::GetLogFilePath() const
-{
-	return this->LogFilePath;
-}
-
-TMap<FString, FJsonObjectWrapper> URuntimeLoggerGameInstance::GetLogDb() const
-{
-	return this->LogDb;
-}
-
-FJsonObjectWrapper URuntimeLoggerGameInstance::GetLog(const FString& UUID)
-{
-	if (this->LogDb.Contains(UUID))
-	{
-		return *this->LogDb.Find(UUID);
-	}
-
-	else
-	{
-		return FJsonObjectWrapper();
-	}
-}
-
-bool URuntimeLoggerGameInstance::MemoryToJson(FJsonObjectWrapper& Out_Json)
+bool URuntimeLoggerSubsystem::MemoryToJson(FJsonObjectWrapper& Out_Json)
 {
 	if (this->LogDb.IsEmpty())
 	{
@@ -197,20 +108,147 @@ bool URuntimeLoggerGameInstance::MemoryToJson(FJsonObjectWrapper& Out_Json)
 	return true;
 }
 
-void URuntimeLoggerGameInstance::MemoryToJson_BP(FDelegateRLExport Delegate_Export)
+bool URuntimeLoggerSubsystem::IsSameMessage(FJsonObjectWrapper In_Message)
 {
-	AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, [this, Delegate_Export]()
-		{
-			FJsonObjectWrapper ResultJson;
-			const bool bIsSuccessfull = this->MemoryToJson(ResultJson);
+	const FString MessageString = In_Message.JsonObject->GetStringField(TEXT("Message"));
+	const FString VerbosityString = In_Message.JsonObject->HasField(TEXT("Verbosity")) ? In_Message.JsonObject->GetStringField(TEXT("Verbosity")) : TEXT("");
 
-			AsyncTask(ENamedThreads::GameThread, [Delegate_Export, bIsSuccessfull, ResultJson]()
-				{
-					Delegate_Export.ExecuteIfBound(bIsSuccessfull, ResultJson);
-				}
-			);
-		}
-	);
+	FJsonObjectWrapper LastMessageJson;
+	LastMessageJson.JsonObjectFromString(this->LastLog);
+
+	const FString LastMessageString = LastMessageJson.JsonObject->GetStringField(TEXT("Message"));
+	const FString LastVerbosityString = LastMessageJson.JsonObject->HasField(TEXT("Verbosity")) ? LastMessageJson.JsonObject->GetStringField(TEXT("Verbosity")) : TEXT("");
+
+	const double Interval = this->SameMessageInterval <= 0 ? 30.0 : this->SameMessageInterval;
+
+	if (MessageString == LastMessageString && VerbosityString == LastVerbosityString && (FDateTime::UtcNow() - this->LastLogTime).GetTotalSeconds() <= Interval)
+	{
+		return true;
+	}
+
+	else
+	{
+		return false;
+	}
 }
 
-#pragma endregion
+#pragma endregion Internals
+
+int32 URuntimeLoggerSubsystem::RecordLog(const FString& In_UUID, FJsonObjectWrapper Message)
+{
+	if (In_UUID.IsEmpty())
+	{
+		UE_LOG(LogRL, Warning, TEXT("RecordLog called with empty UUID."));
+		return -1;
+	}
+
+	if (!Message.JsonObject->HasField(TEXT("Message")))
+	{
+		UE_LOG(LogRL, Warning, TEXT("RecordLog called with JSON object missing 'Message' field."));
+		return -1;
+	}
+
+	if (!this->bAllowSameMessage && IsSameMessage(Message))
+	{
+		UE_LOG(LogRL, Warning, TEXT("RecordLog called with same message within 30 seconds and bAllowSameMessage is false."));
+		return -1;
+	}
+
+	this->LogDb.Add(In_UUID, Message);
+	
+	FString MessageString;
+	if (!Message.JsonObjectToString(MessageString))
+	{
+		UE_LOG(LogRL, Warning, TEXT("RecordLog failed to convert JSON object to string."));
+		return -1;
+	}
+
+	if (MessageString.IsEmpty())
+	{
+		UE_LOG(LogRL, Warning, TEXT("RecordLog called with empty message string."));
+		return -1;
+	}
+
+	FString LevelString;
+	ERuntimeLogLevels VerbosityLevel = ERuntimeLogLevels::Info;
+
+	if (Message.JsonObject->TryGetStringField(TEXT("Verbosity"), LevelString))
+	{
+		VerbosityLevel = URuntimeLoggerSubsystem::GetLogLevelFromString(LevelString);
+	}
+
+	this->Delegate_Runtime_Logger.Broadcast(In_UUID, MessageString, VerbosityLevel);
+
+	if (!this->LogFileBuffer.is_open())
+	{
+		this->OpenLogFile();
+	}
+
+	if (this->LogFileBuffer.is_open())
+	{
+		Message.JsonObject->SetStringField(TEXT("UUID"), In_UUID);
+
+		FString FileString;
+		Message.JsonObjectToString(FileString);
+		const FString FileEntry = FileString + "\n";
+
+		TStringConversion<TStringConvert<FString::ElementType, UTF8CHAR>> StringConverter = StringCast<UTF8CHAR>(*FileEntry);
+		this->LogFileStream.write((const char*)StringConverter.Get(), StringConverter.Length());
+		this->LogFileStream.flush();
+
+		this->LastLog = MessageString;
+		this->LastLogTime = FDateTime::UtcNow();
+
+		return 1;
+	}
+
+	else
+	{
+		return 0;
+	}
+}
+
+void URuntimeLoggerSubsystem::ResetLogs()
+{
+	this->CleanupLogs();
+	this->OpenLogFile();
+}
+
+TMap<FString, FJsonObjectWrapper> URuntimeLoggerSubsystem::GetLogDb() const
+{
+	return this->LogDb;
+}
+
+FString URuntimeLoggerSubsystem::GetLogFilePath() const
+{
+	FString TempPath = this->LogFilePath;
+	FPaths::NormalizeFilename(TempPath);
+	return TempPath;
+}
+
+FJsonObjectWrapper URuntimeLoggerSubsystem::GetLog(const FString& UUID) const
+{
+	if (this->LogDb.Contains(UUID))
+	{
+		return *this->LogDb.Find(UUID);
+	}
+	
+	else
+	{
+		return FJsonObjectWrapper();
+	}
+}
+
+void URuntimeLoggerSubsystem::MemoryToJson_BP(FDelegateRLExport Delegate_Export)
+{
+	AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, [this, Delegate_Export]()
+	{
+		FJsonObjectWrapper ResultJson;
+		const bool bIsSuccessfull = this->MemoryToJson(ResultJson);
+
+		AsyncTask(ENamedThreads::GameThread, [Delegate_Export, bIsSuccessfull, ResultJson]()
+		{
+			Delegate_Export.ExecuteIfBound(bIsSuccessfull, ResultJson);
+		});
+	});
+}

@@ -1,9 +1,9 @@
 #include "Subsystem/RL_Device.h"
 #include "Subsystem/RL_Subsystem.h"
 
-void FRuntimeLoggerOutput::Init_GI(URuntimeLoggerGameInstance* In_GI)
+void FRuntimeLoggerOutput::InitSubsystem(URuntimeLoggerSubsystem* In_LoggerSubsystem)
 {
-	this->GI_Logger = In_GI;
+	this->LoggerSubsystem = In_LoggerSubsystem;
 }
 
 bool FRuntimeLoggerOutput::CanBeUsedOnAnyThread() const
@@ -23,14 +23,13 @@ void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type V
 
     AsyncTask(ENamedThreads::GameThread, [this, Message, Verbosity, FunctionName]()
     {
-        if (!this->GI_Logger)
+        if (!this->LoggerSubsystem)
         {
-            UE_LOG(LogRL, Warning, TEXT("%s : \"Runtime Logger Game Instance\" is not valid. Can't visualize the log message : %s"), *FunctionName, Message);
+            UE_LOG(LogRL, Warning, TEXT("%s : LoggerSubsystem is not valid. Can't visualize the log message : %s"), *FunctionName, Message);
             return;
         }
 
         FJsonObjectWrapper MessageJson;
-
         if (!MessageJson.JsonObjectFromString(Message))
         {
             MessageJson.JsonObject->SetStringField(TEXT("Message"), Message);
@@ -97,7 +96,7 @@ void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type V
 
 		const FString UUID = URL_Static_Functions::GenerateUUIDv7();
 
-        if (this->GI_Logger->RecordLog(UUID, MessageJson) == -1)
+        if (!IsValid(this->LoggerSubsystem) || this->LoggerSubsystem->RecordLog(UUID, MessageJson) == -1)
         {
 			UE_LOG(LogRL, Warning, TEXT("%s : Failed to record the log message : %s"), *FunctionName, Message);
         }

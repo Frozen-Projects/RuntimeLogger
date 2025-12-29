@@ -21,6 +21,12 @@ void URL_Widget_Main::NativeConstruct()
 
 void URL_Widget_Main::NativeDestruct()
 {
+	if (this->LoggerSubsystem && this->LoggerSubsystem->Delegate_Runtime_Logger.IsBound())
+	{
+		LoggerSubsystem->Delegate_Runtime_Logger.RemoveDynamic(this, &URL_Widget_Main::OnLogReceived);
+	}
+
+	this->bIsClosing = true;
 	Super::NativeDestruct();
 }
 
@@ -36,25 +42,26 @@ TSharedRef<SWidget> URL_Widget_Main::RebuildWidget()
 
 void URL_Widget_Main::SetSubsystem()
 {
-	UWorld* TempWorld = GEngine->GetCurrentPlayWorld();
+	URuntimeLoggerSubsystem* TempSubsystem = GEngine->GetEngineSubsystem<URuntimeLoggerSubsystem>();
 
-	if (!IsValid(TempWorld))
+	if (!IsValid(TempSubsystem))
+	{
+		UE_LOG(LogRL, Error, TEXT("Runtime Logger Subsystem is not valid ! Make sure it is initialized in the GameInstance !"));
+		return;
+	}
+
+	UWorld* CurrentWorld = GEngine->GetCurrentPlayWorld();
+
+	if (!CurrentWorld)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Current Play World is not valid !"));
 		return;
 	}
 
-	this->World = TempWorld;
-	URuntimeLoggerGameInstance* TempGameInstance = this->World->GetGameInstance<URuntimeLoggerGameInstance>();
+	this->World = CurrentWorld;
 
-	if (!IsValid(TempGameInstance))
-	{
-		UE_LOG(LogTemp, Error, TEXT("Runtime Logger Game Instance is not valid ! Make sure it is initialized in the GameInstance !"));
-		return;
-	}
-
-	this->GI_Logger = TempGameInstance;
-	this->GI_Logger->Delegate_Runtime_Logger.AddDynamic(this, &URL_Widget_Main::OnLogReceived);
+	this->LoggerSubsystem = TempSubsystem;
+	this->LoggerSubsystem->Delegate_Runtime_Logger.AddDynamic(this, &URL_Widget_Main::OnLogReceived);
 }
 
 void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeLogLevels Out_Level)
@@ -65,27 +72,28 @@ void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeL
 
 void URL_Widget_Main::GenerateChildWidgets(FString In_UUID, FString In_Log, ERuntimeLogLevels In_Level)
 {
-	if (!IsValid(this->World))
+	if (this->bIsClosing)
 	{
-		UE_LOG(LogTemp, Error, TEXT("World is not valid !"));
 		return;
 	}
 
-	if (!IsValid(this->GI_Logger))
+	if (!IsValid(this->World))
 	{
-		UE_LOG(LogTemp, Error, TEXT("\"Runtime Logger Game Instance\" is not valid !"));
+		return;
+	}
+
+	if (!IsValid(this->LoggerSubsystem))
+	{
 		return;
 	}
 
 	if (!this->Each_Log_Class)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Each Log Class is not set !"));
 		return;
 	}
 
 	if (!this->Log_Param_Class)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Log Param Class is not set !"));
 		return;
 	}
 
@@ -93,7 +101,6 @@ void URL_Widget_Main::GenerateChildWidgets(FString In_UUID, FString In_Log, ERun
 
 	if (!IsValid(PlayerController))
 	{
-		UE_LOG(LogTemp, Error, TEXT("Player Controller is not valid!"));
 		return;
 	}
 
@@ -101,7 +108,6 @@ void URL_Widget_Main::GenerateChildWidgets(FString In_UUID, FString In_Log, ERun
 
 	if (!IsValid(Each_Log))
 	{
-		UE_LOG(LogTemp, Error, TEXT("Each Log Widget is not valid!"));
 		return;
 	}
 
@@ -109,7 +115,6 @@ void URL_Widget_Main::GenerateChildWidgets(FString In_UUID, FString In_Log, ERun
 
 	if (!IsValid(AddedSlot))
 	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to add Each Log Widget to Container!"));
 		return;
 	}
 
@@ -117,7 +122,6 @@ void URL_Widget_Main::GenerateChildWidgets(FString In_UUID, FString In_Log, ERun
 
 	if (!IsValid(ScrollBoxSlot))
 	{
-		UE_LOG(LogTemp, Error, TEXT("Added Slot is not a ScrollBoxSlot!"));
 		return;
 	}
 
@@ -137,6 +141,11 @@ void URL_Widget_Main::GenerateChildWidgets(FString In_UUID, FString In_Log, ERun
 
 void URL_Widget_Main::CreateFilters(ERuntimeLogLevels In_Level)
 {
+	if (this->bIsClosing)
+	{
+		return;
+	}
+
 	TArray<FString> String_Sections;
 	UEnum::GetValueAsString(In_Level).ParseIntoArray(String_Sections, TEXT("::"));
 	const FString Criticality_String = String_Sections[1];
