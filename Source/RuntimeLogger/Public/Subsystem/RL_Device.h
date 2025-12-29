@@ -1,18 +1,18 @@
 #pragma once
 #include "CoreMinimal.h"
 
-class URuntimeLoggerSubsystem;
+class URuntimeLoggerGameInstance;
 
 class FRuntimeLoggerOutput : public FOutputDevice
 {
 
 private:
 
-	URuntimeLoggerSubsystem* LoggerSubsystem = nullptr;
+	URuntimeLoggerGameInstance* GI_Logger = nullptr;
 
 public:
 
-	virtual void InitSubsystem(URuntimeLoggerSubsystem* In_LoggerSubsystem);
+	virtual void Init_GI(URuntimeLoggerGameInstance* In_GI);
 
 	virtual bool CanBeUsedOnAnyThread() const override;
 	virtual void Serialize(const TCHAR* Message, ELogVerbosity::Type Verbosity, const FName& Category) override;

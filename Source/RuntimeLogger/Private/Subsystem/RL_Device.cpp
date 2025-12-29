@@ -1,9 +1,9 @@
 #include "Subsystem/RL_Device.h"
 #include "Subsystem/RL_Subsystem.h"
 
-void FRuntimeLoggerOutput::InitSubsystem(URuntimeLoggerSubsystem* In_LoggerSubsystem)
+void FRuntimeLoggerOutput::Init_GI(URuntimeLoggerGameInstance* In_GI)
 {
-	this->LoggerSubsystem = In_LoggerSubsystem;
+	this->GI_Logger = In_GI;
 }
 
 bool FRuntimeLoggerOutput::CanBeUsedOnAnyThread() const
@@ -23,9 +23,9 @@ void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type V
 
     AsyncTask(ENamedThreads::GameThread, [this, Message, Verbosity, FunctionName]()
     {
-        if (!this->LoggerSubsystem)
+        if (!this->GI_Logger)
         {
-            UE_LOG(LogRL, Warning, TEXT("%s : LoggerSubsystem is not valid. Can't visualize the log message : %s"), *FunctionName, Message);
+            UE_LOG(LogRL, Warning, TEXT("%s : \"Runtime Logger Game Instance\" is not valid. Can't visualize the log message : %s"), *FunctionName, Message);
             return;
         }
 
@@ -97,7 +97,7 @@ void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type V
 
 		const FString UUID = URL_Static_Functions::GenerateUUIDv7();
 
-        if (LoggerSubsystem->RecordLog(UUID, MessageJson) == -1)
+        if (this->GI_Logger->RecordLog(UUID, MessageJson) == -1)
         {
 			UE_LOG(LogRL, Warning, TEXT("%s : Failed to record the log message : %s"), *FunctionName, Message);
         }

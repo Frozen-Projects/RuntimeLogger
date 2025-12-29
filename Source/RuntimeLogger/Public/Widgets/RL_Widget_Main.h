@@ -15,7 +15,7 @@ class RUNTIMELOGGER_API URL_Widget_Main : public UUserWidget
 private:
 
 	UWorld* World = nullptr;
-	URuntimeLoggerSubsystem* LoggerSubsystem = nullptr;
+	URuntimeLoggerGameInstance* GI_Logger = nullptr;
 	
 	TMap<FString, URL_Widget_Logs*> MAP_Widgets;
 	TSet<FString> Current_Criticalities;

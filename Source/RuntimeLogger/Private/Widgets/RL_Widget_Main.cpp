@@ -45,16 +45,16 @@ void URL_Widget_Main::SetSubsystem()
 	}
 
 	this->World = TempWorld;
-	URuntimeLoggerSubsystem* TempSubsystem = this->World->GetGameInstance()->GetSubsystem<URuntimeLoggerSubsystem>();
+	URuntimeLoggerGameInstance* TempGameInstance = this->World->GetGameInstance<URuntimeLoggerGameInstance>();
 
-	if (!IsValid(TempSubsystem))
+	if (!IsValid(TempGameInstance))
 	{
-		UE_LOG(LogTemp, Error, TEXT("Runtime Logger Subsystem is not valid ! Make sure it is initialized in the GameInstance !"));
+		UE_LOG(LogTemp, Error, TEXT("Runtime Logger Game Instance is not valid ! Make sure it is initialized in the GameInstance !"));
 		return;
 	}
 
-	this->LoggerSubsystem = TempSubsystem;
-	this->LoggerSubsystem->Delegate_Runtime_Logger.AddDynamic(this, &URL_Widget_Main::OnLogReceived);
+	this->GI_Logger = TempGameInstance;
+	this->GI_Logger->Delegate_Runtime_Logger.AddDynamic(this, &URL_Widget_Main::OnLogReceived);
 }
 
 void URL_Widget_Main::OnLogReceived(FString Out_UUID, FString Out_Log, ERuntimeLogLevels Out_Level)
@@ -71,9 +71,9 @@ void URL_Widget_Main::GenerateChildWidgets(FString In_UUID, FString In_Log, ERun
 		return;
 	}
 
-	if (!IsValid(this->LoggerSubsystem))
+	if (!IsValid(this->GI_Logger))
 	{
-		UE_LOG(LogTemp, Error, TEXT("Runtime Logger Subsystem is not valid !"));
+		UE_LOG(LogTemp, Error, TEXT("\"Runtime Logger Game Instance\" is not valid !"));
 		return;
 	}
 

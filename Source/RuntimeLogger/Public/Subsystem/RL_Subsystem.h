@@ -11,49 +11,43 @@
 #include "RL_Subsystem.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRL, Log, All);
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FDelegateRLOnLogReceived, FString, Out_UUID, FString, Out_Log, ERuntimeLogLevels, Out_Level);
 
+// We used game instance rather than subsystem to store log data because only its ``BeginDestroy`` is guaranteed to be called on application exit and it prevents double log while capturing logs at ``EventEndPlay``.
 UCLASS()
-class RUNTIMELOGGER_API URuntimeLoggerSubsystem : public UGameInstanceSubsystem
+class RUNTIMELOGGER_API URuntimeLoggerGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
-	
+
 private:
-	
-	TMap<FString, FJsonObjectWrapper> LogDb;
+
 	TUniquePtr<FRuntimeLoggerOutput> LogCaptureDevice;
 
 	FString LogFilePath;
 	std::filebuf LogFileBuffer;
 	std::ostream LogFileStream{ nullptr };
+	TMap<FString, FJsonObjectWrapper> LogDb;
+
+	static ERuntimeLogLevels GetLogLevelFromString(const FString& LogLevelString);
 
 	virtual void OpenLogFile();
 	virtual void CleanupLogs();
-	static ERuntimeLogLevels GetLogLevelFromString(const FString& LogLevelString);
 	virtual bool MemoryToJson(FJsonObjectWrapper& Out_Json);
 
 public:
+	
+	virtual void Init() override;
+	virtual void Shutdown() override;
+	virtual void BeginDestroy() override;
 
-	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
-	virtual void Deinitialize() override;
-
-	/*
-	* Return -1 : Failed to record log.
-	* Return 0  : Log recorded in memory only.
-	* Return 1  : Log recorded in memory and to file successfully.
-	*/
-	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger")
-	virtual int32 RecordLog(const FString& In_UUID, FJsonObjectWrapper Message);
-
-	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger")
-	virtual TMap<FString, FJsonObjectWrapper> GetLogDb();
+	UFUNCTION(BlueprintPure, Category = "Frozen Forest|Runtime Logger")
+	virtual FString GetLogFilePath() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger")
 	virtual void ResetLogs();
 
-	UFUNCTION(BlueprintPure, Category = "Frozen Forest|Runtime Logger")
-	virtual FString GetLogFilePath() const;
+	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger")
+	virtual TMap<FString, FJsonObjectWrapper> GetLogDb() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger")
 	virtual FJsonObjectWrapper GetLog(const FString& UUID);
@@ -63,6 +57,9 @@ public:
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger")
 	virtual void MemoryToJson_BP(FDelegateRLExport Delegate_Export);
+
+	UFUNCTION(BlueprintCallable, Category = "Frozen Forest|Runtime Logger")
+	virtual int32 RecordLog(const FString& In_UUID, FJsonObjectWrapper Message);
 
 	UPROPERTY(BlueprintAssignable, Category = "Frozen Forest|Runtime Logger")
 	FDelegateRLOnLogReceived Delegate_Runtime_Logger;

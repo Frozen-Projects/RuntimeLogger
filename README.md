@@ -1,15 +1,23 @@
 # RuntimeLogger
 
 # Description
-This plugin captures ``UE_LOG`` and ``blueprint Print String (if logging enabled)`` based entries at runtime to store and visualize them.
+This plugin captures ``UE_LOG(LogTemp)`` and ``Blueprint Print String (if logging enabled)`` based logs at runtime to store and visualize them. It won't work on editor only logs.
 
-# Workflow / Tutorial
+## STRUCTURE
+1. Runtime Logger Game Instance: It is responsible for log management and automatically attaches ``FOutputDevice`` to catch logs that come from ``UE_LOG(LogTemp)`` and/or ``Print String`` at runtime.
 
-## Log Manager
-``Runtime Logger Subsystem (UGameInstanceSubsystem)`` is our log manager. It is a singleton object and binded to game instance. So, level changes won't affect it.
+### Why UGameInstance ?
+We use ``UGameInstance`` rather than ``UGameInstanceSubsystem`` because subsystem's ``Deinitialize()`` and ``BeginDestroy (inhertied from UObject)`` functions execute before actual shutdown and it causes problem while catching ``EndPlay`` logs. (System prematurely cleans log file and open it again to write it.) Storing file stream in actual ``game instance`` rather than subsystem and doing all cleaning process in ``GameInstance::BeginDestroy()`` prevents this problem. Also level changes don't affect it.
 
-## Log Message
-After enabling this plugin, default ``FOutputDevice`` for ``UE_LOG`` will automatically change with our custom implementation. When you log something with ``PrintString`` or ``UELOG(LogTemp,...)``, for example:<br>
+## TUTORIAL
+* You have to set your game instance from ``Project Settings / Modes``.
+* If you have a custom game instance already, you can change its base class with ours.
+* When you start to play your project, it automatically changes your default ``FOutputDevice`` with our custom one and starts working.
+* You don't have to do something special to start plugin but how can you visualize them depends on your imagination. You can look at plugin's ``Content`` folder for sample.
+* To access log database and log management functions, you can use this blueprint nodes. </br>
+``Get Game Instance`` > ``Cast To RuntimeLoggerGameInstance``. 
+
+## EXAMPLE USE CASE 
 ````
 UE_LOG(LogTemp, Warning, TEXT("YOUR_AWASOME_LOG"))
 ````
