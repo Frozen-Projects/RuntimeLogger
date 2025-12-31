@@ -110,14 +110,22 @@ bool URuntimeLoggerSubsystem::MemoryToJson(FJsonObjectWrapper& Out_Json)
 
 bool URuntimeLoggerSubsystem::IsSameMessage(FJsonObjectWrapper In_Message)
 {
-	const FString MessageString = In_Message.JsonObject->GetStringField(TEXT("Message"));
-	const FString VerbosityString = In_Message.JsonObject->HasField(TEXT("Verbosity")) ? In_Message.JsonObject->GetStringField(TEXT("Verbosity")) : TEXT("");
+	if (this->LastLog.IsEmpty())
+	{
+		return false;
+	}
+
+	const FString MessageString = In_Message.JsonObject->HasField(MESSAGE_FIELD) ? In_Message.JsonObject->GetStringField(MESSAGE_FIELD) : TEXT("");
+	const FString VerbosityString = In_Message.JsonObject->HasField(VERBOSITY_FIELD) ? In_Message.JsonObject->GetStringField(VERBOSITY_FIELD) : TEXT("");
 
 	FJsonObjectWrapper LastMessageJson;
-	LastMessageJson.JsonObjectFromString(this->LastLog);
+	if (!LastMessageJson.JsonObjectFromString(this->LastLog))
+	{
+		return false;
+	}
 
-	const FString LastMessageString = LastMessageJson.JsonObject->GetStringField(TEXT("Message"));
-	const FString LastVerbosityString = LastMessageJson.JsonObject->HasField(TEXT("Verbosity")) ? LastMessageJson.JsonObject->GetStringField(TEXT("Verbosity")) : TEXT("");
+	const FString LastMessageString = LastMessageJson.JsonObject->HasField(MESSAGE_FIELD) ? LastMessageJson.JsonObject->GetStringField(MESSAGE_FIELD) : TEXT("");
+	const FString LastVerbosityString = LastMessageJson.JsonObject->HasField(VERBOSITY_FIELD) ? LastMessageJson.JsonObject->GetStringField(VERBOSITY_FIELD) : TEXT("");
 
 	const double Interval = this->SameMessageInterval <= 0 ? 30.0 : this->SameMessageInterval;
 
@@ -142,7 +150,7 @@ int32 URuntimeLoggerSubsystem::RecordLog(const FString& In_UUID, FJsonObjectWrap
 		return -1;
 	}
 
-	if (!Message.JsonObject->HasField(TEXT("Message")))
+	if (!Message.JsonObject->HasField(MESSAGE_FIELD))
 	{
 		UE_LOG(LogRL, Warning, TEXT("RecordLog called with JSON object missing 'Message' field."));
 		return -1;
@@ -172,7 +180,7 @@ int32 URuntimeLoggerSubsystem::RecordLog(const FString& In_UUID, FJsonObjectWrap
 	FString LevelString;
 	ERuntimeLogLevels VerbosityLevel = ERuntimeLogLevels::Info;
 
-	if (Message.JsonObject->TryGetStringField(TEXT("Verbosity"), LevelString))
+	if (Message.JsonObject->TryGetStringField(VERBOSITY_FIELD, LevelString))
 	{
 		VerbosityLevel = URuntimeLoggerSubsystem::GetLogLevelFromString(LevelString);
 	}

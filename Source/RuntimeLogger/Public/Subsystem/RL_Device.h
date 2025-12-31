@@ -1,6 +1,10 @@
 #pragma once
 #include "CoreMinimal.h"
 
+#define MESSAGE_FIELD TEXT("Message")
+#define LOGTIME_FIELD TEXT("LogTime")
+#define VERBOSITY_FIELD TEXT("Verbosity")
+
 class URuntimeLoggerSubsystem;
 
 class FRuntimeLoggerOutput : public FOutputDevice

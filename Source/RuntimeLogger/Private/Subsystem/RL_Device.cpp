@@ -30,68 +30,73 @@ void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type V
         }
 
         FJsonObjectWrapper MessageJson;
-        if (!MessageJson.JsonObjectFromString(Message))
+        if (!MessageJson.JsonObjectFromString(Message) || !MessageJson.JsonObject->HasField(MESSAGE_FIELD))
         {
-            MessageJson.JsonObject->SetStringField(TEXT("Message"), Message);
+            MessageJson.JsonObject->SetStringField(MESSAGE_FIELD, Message);
         }
 
-        const FString LogTime = FDateTime::Now().ToIso8601();
-       
-        MessageJson.JsonObject->SetStringField(TEXT("LogTime"), LogTime);
-
-        switch (Verbosity)
+        if (!MessageJson.JsonObject->HasField(LOGTIME_FIELD))
         {
-            case ELogVerbosity::NoLogging:
-                MessageJson.JsonObject->SetStringField(TEXT("Verbosity"), TEXT("NoLogging"));
-                break;
-        
-            case ELogVerbosity::Fatal:
-                MessageJson.JsonObject->SetStringField(TEXT("Verbosity"), TEXT("Fatal"));
-                break;
-        
-            case ELogVerbosity::Error:
-                MessageJson.JsonObject->SetStringField(TEXT("Verbosity"), TEXT("Error"));
-                break;
-        
-            case ELogVerbosity::Warning:
-                MessageJson.JsonObject->SetStringField(TEXT("Verbosity"), TEXT("Warning"));
-                break;
-        
-            case ELogVerbosity::Display:
-			    MessageJson.JsonObject->SetStringField(TEXT("Verbosity"), TEXT("Display"));
-                break;
-        
-            case ELogVerbosity::Log:
-			    MessageJson.JsonObject->SetStringField(TEXT("Verbosity"), TEXT("Log"));
-                break;
-        
-            case ELogVerbosity::Verbose:
-                MessageJson.JsonObject->SetStringField(TEXT("Verbosity"), TEXT("Verbose"));
-                break;
-        
-            case ELogVerbosity::VeryVerbose:
-                MessageJson.JsonObject->SetStringField(TEXT("Verbosity"), TEXT("VeryVerbose"));
-                break;
-        
-            case ELogVerbosity::NumVerbosity:
-                MessageJson.JsonObject->SetStringField(TEXT("Verbosity"), TEXT("NumVerbosity"));
-                break;
-        
-            case ELogVerbosity::VerbosityMask:
-                MessageJson.JsonObject->SetStringField(TEXT("Verbosity"), TEXT("VerbosityMask"));
-                break;
-        
-            case ELogVerbosity::SetColor:
-                MessageJson.JsonObject->SetStringField(TEXT("Verbosity"), TEXT("SetColor"));
-                break;
-       
-            case ELogVerbosity::BreakOnLog:
-			    MessageJson.JsonObject->SetStringField(TEXT("Verbosity"), TEXT("BreakOnLog"));
-                break;
-        
-            default:
-                MessageJson.JsonObject->SetStringField(TEXT("Verbosity"), TEXT("Unknown"));
-                break;
+            const FString LogTime = FDateTime::Now().ToIso8601();
+            MessageJson.JsonObject->SetStringField(LOGTIME_FIELD, LogTime);
+        }
+
+        if (!MessageJson.JsonObject->HasField(VERBOSITY_FIELD))
+        {
+            switch (Verbosity)
+            {
+                case ELogVerbosity::NoLogging:
+                    MessageJson.JsonObject->SetStringField(VERBOSITY_FIELD, TEXT("NoLogging"));
+                    break;
+
+                case ELogVerbosity::Fatal:
+                    MessageJson.JsonObject->SetStringField(VERBOSITY_FIELD, TEXT("Fatal"));
+                    break;
+
+                case ELogVerbosity::Error:
+                    MessageJson.JsonObject->SetStringField(VERBOSITY_FIELD, TEXT("Error"));
+                    break;
+
+                case ELogVerbosity::Warning:
+                    MessageJson.JsonObject->SetStringField(VERBOSITY_FIELD, TEXT("Warning"));
+                    break;
+
+                case ELogVerbosity::Display:
+                    MessageJson.JsonObject->SetStringField(VERBOSITY_FIELD, TEXT("Display"));
+                    break;
+
+                case ELogVerbosity::Log:
+                    MessageJson.JsonObject->SetStringField(VERBOSITY_FIELD, TEXT("Log"));
+                    break;
+
+                case ELogVerbosity::Verbose:
+                    MessageJson.JsonObject->SetStringField(VERBOSITY_FIELD, TEXT("Verbose"));
+                    break;
+
+                case ELogVerbosity::VeryVerbose:
+                    MessageJson.JsonObject->SetStringField(VERBOSITY_FIELD, TEXT("VeryVerbose"));
+                    break;
+
+                case ELogVerbosity::NumVerbosity:
+                    MessageJson.JsonObject->SetStringField(VERBOSITY_FIELD, TEXT("NumVerbosity"));
+                    break;
+
+                case ELogVerbosity::VerbosityMask:
+                    MessageJson.JsonObject->SetStringField(VERBOSITY_FIELD, TEXT("VerbosityMask"));
+                    break;
+
+                case ELogVerbosity::SetColor:
+                    MessageJson.JsonObject->SetStringField(VERBOSITY_FIELD, TEXT("SetColor"));
+                    break;
+
+                case ELogVerbosity::BreakOnLog:
+                    MessageJson.JsonObject->SetStringField(VERBOSITY_FIELD, TEXT("BreakOnLog"));
+                    break;
+
+                default:
+                    MessageJson.JsonObject->SetStringField(VERBOSITY_FIELD, TEXT("Unknown"));
+                    break;
+            }
         }
 
 		const FString UUID = URL_Static_Functions::GenerateUUIDv7();
