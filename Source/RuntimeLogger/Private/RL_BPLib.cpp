@@ -21,7 +21,7 @@ bool URL_Static_Functions::LogFileToJson(FJsonObjectWrapper& Out_Json, FString L
 		return false;
 	}
 
-	const std::string PathUtf8 = TCHAR_TO_UTF8(*LogFile);
+	const std::string PathUtf8 = std::string((const char*)StringCast<UTF8CHAR>(*LogFile).Get());
 
 	std::ifstream in(PathUtf8, std::ios::in | std::ios::binary);
 	if (!in.is_open())
@@ -30,7 +30,7 @@ bool URL_Static_Functions::LogFileToJson(FJsonObjectWrapper& Out_Json, FString L
 	}
 
 	std::string Line;
-	FJsonObjectWrapper ResultJson = FJsonObjectWrapper();
+	FJsonObjectWrapper ResultJson;
 	TArray<TSharedPtr<FJsonValue>> Details;
 
 	while (std::getline(in, Line))
@@ -40,7 +40,7 @@ bool URL_Static_Functions::LogFileToJson(FJsonObjectWrapper& Out_Json, FString L
 			Line.pop_back();
 		}
 
-		const FString LineFString = UTF8_TO_TCHAR(Line.c_str());
+		const FString LineFString = StringCast<UTF8CHAR>(Line.c_str()).Get();
 
 		FJsonObjectWrapper LogEntry;
 		if (LogEntry.JsonObjectFromString(LineFString))
@@ -119,7 +119,7 @@ void URL_Static_Functions::LogJson(int32 InLogLevel, FJsonObjectWrapper In_Log)
 FString URL_Static_Functions::GenerateUUIDv7()
 {
 	FRL_UUIDv7 UUID;
-	return UTF8_TO_TCHAR(UUID.generateString().c_str());
+	return StringCast<UTF8CHAR>(UUID.generateString().c_str()).Get();
 }
 
 TArray<uint8> URL_Static_Functions::GenerateUUIDv7Bytes()
