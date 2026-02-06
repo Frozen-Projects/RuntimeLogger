@@ -110,26 +110,18 @@ bool URuntimeLoggerSubsystem::MemoryToJson(FJsonObjectWrapper& Out_Json)
 
 bool URuntimeLoggerSubsystem::IsSameMessage(FJsonObjectWrapper In_Message)
 {
-	if (this->LastLog.IsEmpty())
+	In_Message.JsonObject->RemoveField(LOGTIME_FIELD);
+	In_Message.JsonObject->RemoveField(UUID_FIELD);
+
+	FString CurrentMessage;
+	if (!In_Message.JsonObjectToString(CurrentMessage) || CurrentMessage.IsEmpty())
 	{
 		return false;
 	}
-
-	const FString MessageString = In_Message.JsonObject->HasField(MESSAGE_FIELD) ? In_Message.JsonObject->GetStringField(MESSAGE_FIELD) : TEXT("");
-	const FString VerbosityString = In_Message.JsonObject->HasField(VERBOSITY_FIELD) ? In_Message.JsonObject->GetStringField(VERBOSITY_FIELD) : TEXT("");
-
-	FJsonObjectWrapper LastMessageJson;
-	if (!LastMessageJson.JsonObjectFromString(this->LastLog))
-	{
-		return false;
-	}
-
-	const FString LastMessageString = LastMessageJson.JsonObject->HasField(MESSAGE_FIELD) ? LastMessageJson.JsonObject->GetStringField(MESSAGE_FIELD) : TEXT("");
-	const FString LastVerbosityString = LastMessageJson.JsonObject->HasField(VERBOSITY_FIELD) ? LastMessageJson.JsonObject->GetStringField(VERBOSITY_FIELD) : TEXT("");
 
 	const double Interval = this->SameMessageInterval <= 0 ? 30.0 : this->SameMessageInterval;
 
-	if (MessageString == LastMessageString && VerbosityString == LastVerbosityString && (FDateTime::UtcNow() - this->LastLogTime).GetTotalSeconds() <= Interval)
+	if (CurrentMessage == this->LastLog && (FDateTime::UtcNow() - this->LastLogTime).GetTotalSeconds() <= Interval)
 	{
 		return true;
 	}
@@ -147,12 +139,6 @@ int32 URuntimeLoggerSubsystem::RecordLog(const FString& In_UUID, FJsonObjectWrap
 	if (In_UUID.IsEmpty())
 	{
 		UE_LOG(LogRL, Warning, TEXT("RecordLog called with empty UUID."));
-		return -1;
-	}
-
-	if (!Message.JsonObject->HasField(MESSAGE_FIELD))
-	{
-		UE_LOG(LogRL, Warning, TEXT("RecordLog called with JSON object missing 'Message' field."));
 		return -1;
 	}
 
@@ -204,7 +190,14 @@ int32 URuntimeLoggerSubsystem::RecordLog(const FString& In_UUID, FJsonObjectWrap
 		this->LogFileStream.write((const char*)StringConverter.Get(), StringConverter.Length());
 		this->LogFileStream.flush();
 
-		this->LastLog = MessageString;
+		FJsonObjectWrapper TempLog;
+		TempLog.JsonObjectFromString(MessageString);
+		TempLog.JsonObject->RemoveField(LOGTIME_FIELD);
+		TempLog.JsonObject->RemoveField(UUID_FIELD);
+
+		this->LastLog;
+		TempLog.JsonObjectToString(this->LastLog);
+
 		this->LastLogTime = FDateTime::UtcNow();
 
 		return 1;

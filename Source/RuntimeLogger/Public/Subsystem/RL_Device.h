@@ -4,6 +4,7 @@
 #define MESSAGE_FIELD TEXT("Message")
 #define LOGTIME_FIELD TEXT("LogTime")
 #define VERBOSITY_FIELD TEXT("Verbosity")
+#define UUID_FIELD TEXT("UUID")
 
 class URuntimeLoggerSubsystem;
 

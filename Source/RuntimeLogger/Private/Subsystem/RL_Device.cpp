@@ -30,7 +30,7 @@ void FRuntimeLoggerOutput::Serialize(const TCHAR* Message, ELogVerbosity::Type V
         }
 
         FJsonObjectWrapper MessageJson;
-        if (!MessageJson.JsonObjectFromString(Message) || !MessageJson.JsonObject->HasField(MESSAGE_FIELD))
+        if (!MessageJson.JsonObjectFromString(Message))
         {
             MessageJson.JsonObject->SetStringField(MESSAGE_FIELD, Message);
         }
